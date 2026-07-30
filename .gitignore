@@ -1,24 +1,43 @@
-# Node Modules
-node_modules/
+# ==========================
+# Dependencies
+# ==========================
+client/node_modules/
+server/node_modules/
 
-# Environment Variables
-.env
-.env.local
-
-# Logs
-logs/
-*.log
-
+# ==========================
 # Build Output
-dist/
+# ==========================
+client/dist/
+server/dist/
 build/
 
-# OS Files
+# ==========================
+# Environment Files
+# ==========================
+client/.env
+server/.env
+.env
+
+# ==========================
+# Logs
+# ==========================
+logs/
+*.log
+npm-debug.log*
+
+# ==========================
+# Coverage
+# ==========================
+coverage/
+
+# ==========================
+# IDE
+# ==========================
+.vscode/
+.idea/
+
+# ==========================
+# OS
+# ==========================
 .DS_Store
 Thumbs.db
-
-# VS Code
-.vscode/
-
-# Coverage
-coverage/
