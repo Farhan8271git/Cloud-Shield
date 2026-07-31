@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import routes from "./routes/index.js";
 
 
 const app = express();
@@ -35,12 +36,7 @@ app.use(
     })
 );
 
-// here i can use temprory route
-app.get("/", (req, res) => {
-    res.json({
-        success: true,
-        message: " welcome farhan's Cloud-Shield API"
-    });
-});
+app.use("/api", routes);
 
 export default app;
+
