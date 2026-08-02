@@ -1,15 +1,7 @@
 import { Router } from "express";
+import healthController from "../controllers/health.controller.js";
+
 const router = Router();
-
-router .get("/health", (req, res) => {
-    res.status(200).json({
-        success: true,
-        status: "OK",
-        message: "Cloud-Shield API is working properly",
-        timestamp: new Date().toISOString(),
-        enviroment: process.env.NODE_ENV || "development",
-
-    });
-});
+router.get("/health", healthController.getHealth);
 
 export default router;
