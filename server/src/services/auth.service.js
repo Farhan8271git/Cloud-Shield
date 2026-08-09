@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
+import AppError from "../utils/AppError.js";
 
 const registerUser = async (userData) => {
   const { fullName, email, password } = userData;
@@ -8,7 +9,7 @@ const registerUser = async (userData) => {
   const existingUser = await User.findOne({ email });
 
   if (existingUser) {
-    throw new Error("Email already exists.");
+    throw new AppError("Email already exists.", 409);
   }
 
   // Hash password
