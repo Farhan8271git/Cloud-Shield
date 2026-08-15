@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 
-//parse cookies
+//parse cookies  time used is 15 mins
 app.use(cookieParser());
 
 

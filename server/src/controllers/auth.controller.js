@@ -13,13 +13,21 @@ const register = async (req, res, next) => {
 
 //login user 
 const login = async (req, res, next) => {
-    try{
+    try {
         const { email, password } = req.body;
         const { user, token } = await authService.loginUser(email, password);
 
-        return sendSuccess(res, 200, " Login successfull", { user, token,} 
-        );
-    } catch (error) { next(error) 
+        // store cookies 
+        res.cookie("accessToken", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 *60 * 1000,   // session out time is 15 minutes 
+        });
+
+        return sendSuccess(res, 200, " Loginsuccessfull",{ user, token, });
+      } catch (error) {
+        next(error)
     }
 };
 
