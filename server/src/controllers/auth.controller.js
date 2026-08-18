@@ -31,7 +31,16 @@ const login = async (req, res, next) => {
     }
 };
 
+const me = async (req, res, next) => {
+    try {
+        return sendSuccess(res, 200,"Authenticated user.",req.user);
+    } catch (error) {
+        next(error);
+    }   
+};
+
 export default {
     register,
     login,
+    me,
 };
