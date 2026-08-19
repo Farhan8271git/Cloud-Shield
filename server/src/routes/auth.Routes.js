@@ -3,6 +3,7 @@ import authController from "../controllers/auth.controller.js";
 import validate from "../middleware/validate.middleware.js";
 import { registerSchema, LoginSchema, } from "../validators/auth.validators.js";
 import authenticate from "../middleware/auth.middleware.js";
+import refreshController from "../controllers/refresh.controller.js";
 
 
 //router 
@@ -19,5 +20,8 @@ router.get("/me", authenticate, authController.me);
 
 //logout
 router.post("/logout", authenticate, authController.logout)
+
+// refresh access token
+router.post("/refresh", refreshController.refresh)
 
 export default router; 

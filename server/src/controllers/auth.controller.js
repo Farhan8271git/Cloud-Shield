@@ -15,9 +15,16 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        const { user, token } = await authService.loginUser(email, password);
+        // collect request information refresh-session tracking
+        const sessionInfo = {
+            userAgent: req.get("user-agent"),
+            ipAddress: req.ip,
+        };
 
-        // store cookies 
+        // authenticate user and create access and refresh toekns
+        const { user, token, refreshToken } = await authService.loginUser( email, password, sessionInfo );
+
+        // store access token in  HttpOnly cookie
         res.cookie("accessToken", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -25,7 +32,16 @@ const login = async (req, res, next) => {
             maxAge: 15 *60 * 1000,   // session out time is 15 minutes 
         });
 
-        return sendSuccess(res, 200, " Loginsuccessfull",{ user, token, });
+        // store refresh token in HttpOnly cookie
+        res.cookie("refreshToken", refreshToken,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 4 * 60 * 60 * 1000,
+        });
+        
+        //return informatuion without authentication token
+        return sendSuccess(res, 200, " Loginsuccessfull",{ user, });
       } catch (error) {
         next(error)
     }
