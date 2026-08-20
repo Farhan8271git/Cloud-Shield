@@ -2,16 +2,42 @@ import refreshService from "../services/refresh.service.js";
 import { sendSuccess } from "../utils/response.js";
 
 // for refresh token access 
-const refresh =  async (req, res, next) => {
-    try{
-        // get the refresh token from HttpOnly cookkie 
+// refresh access token
+const refresh = async (req, res, next) => {
+    try {
+        // get refresh token from HttpOnly cookie
         const refreshToken = req.cookies.refreshToken;
 
-        // validation of the refresh session
-        await refreshService.refreshAccessToken(refreshToken);
+        // validate and rotate refresh session
+        const {
+            accessToken,
+            refreshToken: newRefreshToken,
+        } = await refreshService.refreshAccessToken(refreshToken);
 
-        // for temprory response 
-        return sendSuccess(res, 200, "Refresh token is valid.", null); 
+        // store new access token in HttpOnly cookie
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
+        });
+
+        // store new refresh token in HttpOnly cookie
+        res.cookie("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 4 * 60 * 60 * 1000,
+        });
+
+        // return success without exposing authentication tokens
+        return sendSuccess(
+            res,
+            200,
+            "Token refreshed successfully.",
+            null
+        );
+
     } catch (error) {
         next(error);
     }
