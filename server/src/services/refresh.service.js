@@ -22,6 +22,8 @@ const refreshAccessToken = async (refreshToken) => {
     // reject unknown refresh token
     if (!session) { throw new AppError("Invalid refresh token.", 401); }
 
+
+
     // detect reuse of a revoked refresh token
     if (session.revokedAt) {
 
@@ -50,7 +52,7 @@ const refreshAccessToken = async (refreshToken) => {
         session.revokedAt = new Date();
         await session.save();
 
-        throw new AppError("Rfresh session has expired.", 401);
+        throw new AppError("Refresh session has expired.", 401);
     }
 
     // for inactive time session tineout
@@ -123,10 +125,31 @@ const refreshAccessToken = async (refreshToken) => {
     }
 };
 
-// identify all rotated tokens belonging to the same login session
+// revoke refrsh session during logout
+const revokeRefreshToken = async (refreshToken) => {
+    //check refresh token
+    if (!refreshToken) {
+        return;
+    }
 
+    // hash icoming refrsh
+    const tokenHash = hashRefreshToken(refreshToken);
+    //find refresh token
+    const session = await RefreshSession.findOne({
+        tokenHash,
+    });
+
+    // ignore the unknown or revoked refresh tokens
+    if(!session || session.revokedAt) {
+        return;
+    }
+
+    // revoke refresh session
+    session.revokedAt = new Date();
+    await session.save();
+};
 
 
 export default {
-    refreshAccessToken,
+    refreshAccessToken, revokeRefreshToken,
 };

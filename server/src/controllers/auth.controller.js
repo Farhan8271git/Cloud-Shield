@@ -1,4 +1,5 @@
 import authService from "../services/auth.service.js";
+import refreshService from "../services/refresh.service.js";
 import { sendSuccess } from "../utils/response.js";
 
 // register user 
@@ -57,22 +58,37 @@ const me = async (req, res, next) => {
 
 //  for logout
 const logout = async (req, res, next) => {
-  try {
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    try {
+        // get refresh token from HttpOnly cookie
+        const refreshToken = req.cookies.refreshToken;
 
-    return sendSuccess(
-      res,
-      200,
-      "Logout successful.",
-      null
-    );
-  } catch (error) {
-    next(error);
-  }
+        // revoke refresh session on the server
+        await refreshService.revokeRefreshToken(refreshToken);
+
+        // clear access token cookie
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        // clear refresh token cookie
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        // return successful logout response
+        return sendSuccess(
+            res,
+            200,
+            "Logout successful.",
+            null
+        );
+    } catch (error) {
+        next(error);
+    }
 };
 
 export default {

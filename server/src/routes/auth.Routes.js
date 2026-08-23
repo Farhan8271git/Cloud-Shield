@@ -19,7 +19,7 @@ router.post( "/login", validate(LoginSchema), authController.login);
 router.get("/me", authenticate, authController.me);
 
 //logout
-router.post("/logout", authenticate, authController.logout)
+router.post("/logout", authController.logout)
 
 // refresh access token
 router.post("/refresh", refreshController.refresh)
