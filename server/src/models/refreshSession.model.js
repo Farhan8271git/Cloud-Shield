@@ -10,6 +10,13 @@ const refreshSessionSchema = new mongoose.Schema(
             required: "true",
             index: "true",
         },
+
+        //identify all the rotated tokens family id 
+        familyId: {
+            type: mongoose.Schema.Types.UUID,
+            required: true,
+            index: true,
+        },
         
         //hashed refresh token
         tokenHash: {

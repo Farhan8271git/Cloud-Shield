@@ -1,113 +1,124 @@
 import bcrypt from "bcryptjs";
-import User from "../models/user.model.js";
-import AppError from "../utils/AppError.js";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import env from "../config/env.js";
+
+import User from "../models/user.model.js";
 import RefreshSession from "../models/refreshSession.model.js";
-import { generateRefreshToken, hashRefreshToken, } from "../utils/refreshToken.js";
+import AppError from "../utils/AppError.js";
+import env from "../config/env.js";
+import {
+    generateRefreshToken,
+    hashRefreshToken,
+} from "../utils/refreshToken.js";
 
 const registerUser = async (userData) => {
-  const { fullName, email, password } = userData;
+    const { fullName, email, password } = userData;
 
-  // Check if user already exists
-  const existingUser = await User.findOne({ email });
+    // check if user already exists
+    const existingUser = await User.findOne({ email });
 
-  if (existingUser) {
-    throw new AppError("Email already exists.", 409);
-  }
+    if (existingUser) {
+        throw new AppError("Email already exists.", 409);
+    }
 
-  // Hash password
-  const hashedPassword = await bcrypt.hash(password, 12);
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-  // Create user
-  const newUser = await User.create({
-    fullName,
-    email,
-    password: hashedPassword,
-  });
+    // create user
+    const newUser = await User.create({
+        fullName,
+        email,
+        password: hashedPassword,
+    });
 
-  // Remove password before returning
-  const userResponse = newUser.toObject();
-  delete userResponse.password;
+    // remove password before returning
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
 
-  return userResponse;
+    return userResponse;
 };
 
-//login user 
+// login user
 const loginUser = async (email, password, sessionInfo = {}) => {
-  const user = await User.findOne({ email });
+    const user = await User.findOne({ email });
 
-  // Use a generic error so attackers cannot discover registered emails.
-  if (!user) {
-    throw new AppError("Invalid email or password.", 401);
-  }
-
-  //for checking account status
-  if (user.accountStatus !== "active") {
-    throw new AppError("Account is not active.", 403);
-  }
-
-  // comparing the login password with stored bycrypt hash
-  const isPasswordValid = await bcrypt.compare(
-    password,
-    user.password
-  );
-
-  // reject invalid credentials
-  if (!isPasswordValid) {
-    throw new AppError("Invalid email or password.", 401);
-  }
-  // update last sucessfull login time 
-  user.lastLogin = new Date();
-  await user.save();
-  
-  // generate short time access token
-  const token = jwt.sign(
-    {
-      userId: user._id.toString(),
-      role: user.role,
-    },
-    env.JWT_SECRET,
-    {
-      expiresIn: "15m",
+    // use generic error to prevent account enumeration
+    if (!user) {
+        throw new AppError("Invalid email or password.", 401);
     }
-  );
 
-  // generte Refresh token
-  const refreshToken = generateRefreshToken();
+    // check account status
+    if (user.accountStatus !== "active") {
+        throw new AppError("Account is not active.", 403);
+    }
 
-  // hashed refresh token before storing 
-  const refreshTokenHash = hashRefreshToken(refreshToken);
+    // compare password with stored bcrypt hash
+    const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password
+    );
 
-  // create refresh session timestamps
-  const now = new Date();
-  const refreshExpiresAt = new Date(
-    now.getTime() + 7 * 24 * 60 * 60 * 60 * 1000
-  );
+    // reject invalid credentials
+    if (!isPasswordValid) {
+        throw new AppError("Invalid email or password.", 401);
+    }
 
-  // store refresh session
-  await RefreshSession.create({
-    userId: user._id,
-    tokenHash: refreshTokenHash,
-    lastUsedAt: now,
-    expiresAt: refreshExpiresAt,
-    userAgent: sessionInfo.userAgent || null,
-    ipAddress: sessionInfo.ipAddress || null,
-  });
+    // update last successful login time
+    user.lastLogin = new Date();
+    await user.save();
 
-  // remove password before returning user
-  const userResponse = user.toObject();
-  delete userResponse.password;
-  
-   //return authentication data controller
-  return {
-    user: userResponse,
-    token,
-    refreshToken,
-  };
+    // generate short-lived access token
+    const token = jwt.sign(
+        {
+            userId: user._id.toString(),
+            role: user.role,
+        },
+        env.JWT_SECRET,
+        {
+            expiresIn: "15m",
+        }
+    );
+
+    // generate refresh token
+    const refreshToken = generateRefreshToken();
+
+    // hash refresh token before storing
+    const refreshTokenHash = hashRefreshToken(refreshToken);
+
+    // create refresh session timestamps
+    const now = new Date();
+
+    const refreshExpiresAt = new Date(
+        now.getTime() + 7 * 24 * 60 * 60 * 1000
+    );
+
+    // create unique refresh-token family for this login session
+    const familyId = crypto.randomUUID();
+
+    // create refresh session
+    await RefreshSession.create({
+        userId: user._id,
+        familyId,
+        tokenHash: refreshTokenHash,
+        lastUsedAt: now,
+        expiresAt: refreshExpiresAt,
+        userAgent: sessionInfo.userAgent || null,
+        ipAddress: sessionInfo.ipAddress || null,
+    });
+
+    // remove password before returning user
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    // return authentication data
+    return {
+        user: userResponse,
+        token,
+        refreshToken,
+    };
 };
 
 export default {
-  registerUser,
-  loginUser,
+    registerUser,
+    loginUser,
 };

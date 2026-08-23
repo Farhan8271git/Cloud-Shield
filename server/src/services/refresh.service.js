@@ -22,8 +22,28 @@ const refreshAccessToken = async (refreshToken) => {
     // reject unknown refresh token
     if (!session) { throw new AppError("Invalid refresh token.", 401); }
 
-    // reject revoked session
-    if (session.revokedAt) { throw new AppError("Refresh session has been revoked.", 401); }
+    // detect reuse of a revoked refresh token
+    if (session.revokedAt) {
+
+        // revoke all active sessions in the same token family
+        await RefreshSession.updateMany(
+            {
+                familyId: session.familyId,
+                revokedAt: null,
+            },
+            {
+                $set: {
+                    revokedAt: new Date(),
+                },
+            }
+        );
+
+        throw new AppError(
+            "Refresh token reuse detected. Please log in again.",
+            401
+        );
+    }
+
 
     // check absolute sesion expiration \
     if (session.expiresAt <= new Date()) {
@@ -88,20 +108,23 @@ const refreshAccessToken = async (refreshToken) => {
     // create new refresh token
     const newSession = await RefreshSession.create({
         userId: user._id,
+        familyId: session.familyId,
         tokenHash: newTokenHash,
         lastUsedAt: now,
         expiresAt: session.expiresAt,
         userAgent: session.userAgent,
         ipAddress: session.ipAddress,
-
     });
 
     return {
         accessToken,
         refreshToken: newRefreshToken,
-        session: newSession,    
+        session: newSession,
     }
 };
+
+// identify all rotated tokens belonging to the same login session
+
 
 
 export default {
