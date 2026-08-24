@@ -47,7 +47,7 @@ const refreshAccessToken = async (refreshToken) => {
     }
 
 
-    // check absolute sesion expiration \
+    // check absolute sesion expiration 
     if (session.expiresAt <= new Date()) {
         session.revokedAt = new Date();
         await session.save();

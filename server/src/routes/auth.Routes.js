@@ -4,6 +4,8 @@ import validate from "../middleware/validate.middleware.js";
 import { registerSchema, LoginSchema, } from "../validators/auth.validators.js";
 import authenticate from "../middleware/auth.middleware.js";
 import refreshController from "../controllers/refresh.controller.js";
+// import authenticate from "../middleware/authorize.middleware.js"; //see later
+import authorize from "../middleware/authorize.middleware.js";
 
 
 //router 
@@ -15,8 +17,17 @@ router.post("/register", validate(registerSchema), authController.register);
 //login route 
 router.post( "/login", validate(LoginSchema), authController.login);
 
-// login
+// login me
 router.get("/me", authenticate, authController.me);
+
+// admin only test route
+// router.get("/admin-test", authenticate,authorize("admin"), 
+// (req, res) => {
+//     return res.status(200).json({
+//         success: true,
+//         message: "Admin authorization successful.",
+//     });
+// });
 
 //logout
 router.post("/logout", authController.logout)

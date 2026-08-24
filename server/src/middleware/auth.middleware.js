@@ -10,12 +10,16 @@ const authenticate = async (req, res, next) => {
       throw new AppError("Authentication required.", 401);
     }
     let decoded;
+
     try {
       decoded = jwt.verify(token, env.JWT_SECRET);
-    } catch (error) {
+    }
+    catch (error) {
+
       if (error.name === "TokenExpiredError") {
         throw new AppError("Authentication token expired.", 401);
       }
+
       if (error.name === "JsonWebTokenError") {
         throw new AppError("Invalid authentication token.", 401);
       }
@@ -25,6 +29,8 @@ const authenticate = async (req, res, next) => {
 
     const user = await User.findById(decoded.userId).select("-password");
 
+    req.user = user;
+
     if (!user) {
       throw new AppError("Authentication required.", 401);
     }
@@ -32,7 +38,6 @@ const authenticate = async (req, res, next) => {
     if (user.accountStatus !== "active") {
       throw new AppError("Account is not active.", 403);
     }
-
     req.user = user;
 
     next();
