@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import File from "../models/file.model.js";
 import AppError from "../utils/AppError.js";
+import securityEventService from "./securityEvent.service.js";
 
 const UPLOAD_DIRECTORY = path.resolve(
     process.cwd(),
@@ -45,9 +46,6 @@ const checkFileItegrity = async (fileId, userId) => {
         );
     }
 
-
-
-
     // calculate the current SHA hash
     const currentHash = crypto
         .createHash("sha256")
@@ -62,6 +60,19 @@ const checkFileItegrity = async (fileId, userId) => {
         : "modified";
 
     await file.save();
+
+    if (!isIntact) {
+        await securityEventService.createSecurityEvent({
+            userId, fileId: file._id,
+            eventType: "integrity_violation",
+            previousHash: file.hash, currentHash,
+            riskScore: 10,
+            reason: "your file contents differ from the trusted baseline.",
+            metadata:{
+                originalName: file.originalName,
+            },
+        });
+    }
 
     return {
         fileId: file._id,
