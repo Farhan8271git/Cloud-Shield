@@ -36,7 +36,7 @@ const fileSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    
+
 
     // store  file size in bytes
     size: {
@@ -49,7 +49,7 @@ const fileSchema = new mongoose.Schema({
     hash: {
         type: string,
         required: true,
-        index:true,
+        index: true,
     },
 
     // track the security state of the file 
@@ -57,6 +57,15 @@ const fileSchema = new mongoose.Schema({
         type: string,
         enum: ["pending", "safe", "suspicious", "infected", "quarantined",],
         default: "pending",
+        required: true,
+        index: true,
+    },
+
+    //integrity status
+    integrityStatus: {
+        type: String,
+        enum: ["intact", "modified", "unavailable"],
+        default: "intact",
         required: true,
         index: true,
     },

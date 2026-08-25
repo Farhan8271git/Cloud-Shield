@@ -69,24 +69,13 @@ const createFile = async (userId, uploadedFile) => {
         // Save metadata in MongoDB
         const file = await File.create({
             userId,
-
             originalName: uploadedFile.originalname,
-
-            storedName,
-
-            storagePath,
-
-            mimeType: detectedFile.mimetype,
-
-            size: uploadedFile.size,
-
-            hash,
-
+            storedName, storagePath,
+            mimeType: detectedFile.mimeType,
+            size: uploadedFile.size, hash,
             status: "pending",
         });
-
         return file;
-
     } catch (error) {
 
         // If database creation fails after the file
@@ -96,7 +85,6 @@ const createFile = async (userId, uploadedFile) => {
         } catch {
             // Ignore cleanup failure.
         }
-
         throw error;
     }
 };
