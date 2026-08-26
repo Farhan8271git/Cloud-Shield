@@ -4,9 +4,9 @@ import path from "path";
 
 import File from "../models/file.model.js";
 import AppError from "../utils/AppError.js";
-import {
-    validateUploadedFile,
-} from "../utils/fileValidator.js";
+import { validateUploadedFile, } from "../utils/fileValidator.js";
+
+import fileActivityService from "./fileActivity.service.js";
 
 const UPLOAD_DIRECTORY = path.resolve(
     process.cwd(),
@@ -75,6 +75,15 @@ const createFile = async (userId, uploadedFile) => {
             size: uploadedFile.size, hash,
             status: "pending",
         });
+
+        // recod file creation 
+
+        await fileActivityService.recordFileActivity({
+            userId, fileId: file._id,
+            activityType: "created",
+            currentName: file.originalName,
+        });
+
         return file;
     } catch (error) {
 

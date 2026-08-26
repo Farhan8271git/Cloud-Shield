@@ -8,8 +8,6 @@ const securityEventSchema = new mongoose.Schema({
         required: true,
         index: true,
     },
-
-
     fileId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "File",
@@ -47,6 +45,18 @@ const securityEventSchema = new mongoose.Schema({
         maxlength: 500
     },
 
+    previousExtension: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+
+    currentExtension: {
+        type: String,
+        default: null,
+        trim: true,
+    },
+
     metadata: {
         type: mongoose.Schema.Types.Mixed,
         default: {},
@@ -58,8 +68,22 @@ const securityEventSchema = new mongoose.Schema({
     }
 );
 
+securityEventSchema.index(
+    {
+        userId: 1,
+        fileId: 1,
+        eventType: 1,
+        previousHash: 1,
+        currentHash: 1,
+    },
+    {
+        unique: true,
+        name: "unique_security_event_transition",
+    }
+);
+
 const SecurityEvent = mongoose.model(
-    "SecurityEvent" ,securityEventSchema
+    "SecurityEvent", securityEventSchema
 );
 
 export default SecurityEvent;
