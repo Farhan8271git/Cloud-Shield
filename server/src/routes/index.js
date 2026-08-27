@@ -3,18 +3,22 @@ import healthRoutes from "./health.routes.js";
 import authRoutes from "./auth.Routes.js";
 import fileRoutes from "./file.routes.js";
 import securityRoutes from "./security.routes.js";
+import activityAnalysisRoutes from "./activityAnalysis.routes.js";
 
 const router = Router();
-// health route 
+// health 
 router.use("/",healthRoutes);
 
-// authentication routes
+// authentication 
 router.use("/auth", authRoutes);
 
-//file management routes
+//file management 
 router.use("/files", fileRoutes);
 
-// security Routes
+// security 
 router.use("/security", securityRoutes);
+
+//activity analysis 
+router.use("/security/activity-analysis", activityAnalysisRoutes);
 
 export default router;
