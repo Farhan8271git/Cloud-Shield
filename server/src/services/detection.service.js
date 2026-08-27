@@ -18,13 +18,13 @@ const getRecentIntegrityActivity = async (userId, windowSeconds = 30 ) => {
     );
 
     const events = await SecurityEvent.find({ 
-        userId, contentType:"integrity_violation",
+        userId, eventType:"integrity_violation",
         createdAt: {
             $gte: windowStart,
         },
     })
 
-    .select("filed previousHash currentHash createdAt riskScore").sort({
+    .select("filedId previousHash currentHash createdAt riskScore").sort({
         createdAt: -1,
     });
 

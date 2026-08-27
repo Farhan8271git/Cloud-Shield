@@ -1,4 +1,4 @@
-import FileActivity from "../models/fileAcyivity.model.js";
+import FileActivity from "../models/fileActivity.model.js";
 import AppError from "../utils/AppError.js";
 import fileExtension from "../utils/fileExtension.js";
 
@@ -14,7 +14,7 @@ const recordFileActivity = async ({
         );
     }
 
-    const previousExtension = fileExtension.getFileExtension(currentName);
+    const previousExtension = fileExtension.getFileExtension(previousName);
 
     const currentExtension = fileExtension.getFileExtension(currentName);
 

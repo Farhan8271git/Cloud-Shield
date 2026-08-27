@@ -16,7 +16,7 @@ const securityEventSchema = new mongoose.Schema({
     },
 
     eventType: {
-        type: "string",
+        type: String,
         enum: [
             "integrity_violation",
             "suspicious_activity",
@@ -27,6 +27,10 @@ const securityEventSchema = new mongoose.Schema({
     },
 
     previousHash: {
+        type: String,
+        default: null,
+    },
+    currentHash: {
         type: String,
         default: null,
     },
