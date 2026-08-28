@@ -1,6 +1,6 @@
-import { hash } from "bcryptjs";
+// import { hash } from "bcryptjs"; wrong import use in future
 import mongoose from "mongoose";
-import { maxLength, string } from "zod";
+// import { maxLength, string } from "zod";  wrong import use in future
 const fileSchema = new mongoose.Schema({
     // identify the user who owns the file 
     userId: {
@@ -45,16 +45,37 @@ const fileSchema = new mongoose.Schema({
         min: 0,
     },
 
-    //store cryptographic file fingerprint
+    //store cryptographic file fingerprint sha 256
     hash: {
-        type: string,
+        type: String,
+        required: true,
+        index: true,
+    },
+
+
+    // Server-controlled filename of the trusted backup
+    backupStoredName: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+
+    // Physical path of the trusted backup
+    backupStoragePath: {
+        type: String,
+        required: true,
+    },
+
+    // SHA-256 fingerprint of the trusted backup
+    backupHash: {
+        type: String,
         required: true,
         index: true,
     },
 
     // track the security state of the file 
     status: {
-        type: string,
+        type: String,
         enum: ["pending", "safe", "suspicious", "infected", "quarantined",],
         default: "pending",
         required: true,

@@ -19,11 +19,7 @@ const createFile = async (req, res, next) => {
             req.file
         );
 
-        return sendSuccess(
-            res,
-            201,
-            "File uploaded successfully.",
-            file
+        return sendSuccess(res, 201, "File uploaded successfully.", file
         );
     } catch (error) {
         next(error);
@@ -38,11 +34,11 @@ const getFile = async (req, res, next) => {
         const userId = req.user._id;
 
         // get file ID  from URL parameter
-        const { fileID } = req.params;
+        const { fileId } = req.params;
 
         // service enforces ownership
         const file = await fileService.getUserFile(
-            fileID, userId
+            fileId, userId
         );
 
         // return file metadata

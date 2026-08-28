@@ -6,7 +6,7 @@ import AppError from "../utils/AppError.js";
 const createSecurityEvent = async ({
     userId, fileId, eventType, previousHash = null, currentHash = null, riskScore = 0, reason, metadata= {},
 }) => {
-    if(!userId || fileId) {
+    if(!userId || !fileId) {
         throw new AppError("User and file ID are required.", 400);
     }
 
