@@ -10,7 +10,10 @@ server/node_modules/
 client/dist/
 server/dist/
 build/
-
+# ==========================
+# User Uploaded Files
+# ==========================
+server/uploads/
 # ==========================
 # Environment Files
 # ==========================
