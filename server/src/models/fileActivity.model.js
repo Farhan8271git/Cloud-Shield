@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const fileActivitySchema = new mongoose.Schema({
     userId:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Uaer",
+        ref: "User",
         required: true,
         index: true,
     },
@@ -22,6 +22,8 @@ const fileActivitySchema = new mongoose.Schema({
             "modified",
             "renamed",
             "deleted",
+            "recovered",
+            "recovery_failed",
         ],
         required: true,
         index: true,  
