@@ -176,15 +176,32 @@ const createFile = async (userId, uploadedFile) => {
         });
 
         return file;
-    } catch (error) {
+        } catch (error) {
+        // Preserve files if database rollback cannot be confirmed.
+        let safeToRemoveFiles = true;
+
         // Roll back the database record if it was created.
         if (createdFileId) {
             try {
-                await File.deleteOne({
+                const rollbackResult = await File.deleteOne({
                     _id: createdFileId,
                     userId,
                 });
+
+                if (rollbackResult.deletedCount !== 1) {
+                    safeToRemoveFiles = false;
+
+                    console.error(
+                        "Upload rollback could not confirm metadata deletion.",
+                        {
+                            fileId: String(createdFileId),
+                            deletedCount: rollbackResult.deletedCount,
+                        }
+                    );
+                }
             } catch (cleanupError) {
+                safeToRemoveFiles = false;
+
                 console.error(
                     "Failed to remove file metadata after upload failure.",
                     {
@@ -195,37 +212,48 @@ const createFile = async (userId, uploadedFile) => {
             }
         }
 
-        // Remove only the current file created by this operation.
-        if (currentFileWritten) {
-            try {
-                await fs.unlink(absolutePath);
-            } catch (cleanupError) {
-                console.error(
-                    "Failed to clean up uploaded file.",
-                    {
-                        storedName,
-                        message: cleanupError.message,
-                    }
-                );
+        if (safeToRemoveFiles) {
+            // Remove only the current file created by this operation.
+            if (currentFileWritten) {
+                try {
+                    await fs.unlink(absolutePath);
+                } catch (cleanupError) {
+                    console.error(
+                        "Failed to clean up uploaded file.",
+                        {
+                            storedName,
+                            message: cleanupError.message,
+                        }
+                    );
+                }
             }
+
+            // Remove only the backup created by this operation.
+            if (backupFileWritten) {
+                try {
+                    await fs.unlink(absoluteBackupPath);
+                } catch (cleanupError) {
+                    console.error(
+                        "Failed to clean up backup file.",
+                        {
+                            backupStoredName,
+                            message: cleanupError.message,
+                        }
+                    );
+                }
+            }
+        } else {
+            console.error(
+                "Preserving uploaded files because database rollback was not confirmed.",
+                {
+                    fileId: String(createdFileId),
+                    storedName,
+                    backupStoredName,
+                }
+            );
         }
 
-        // Remove only the backup created by this operation.
-        if (backupFileWritten) {
-            try {
-                await fs.unlink(absoluteBackupPath);
-            } catch (cleanupError) {
-                console.error(
-                    "Failed to clean up backup file.",
-                    {
-                        backupStoredName,
-                        message: cleanupError.message,
-                    }
-                );
-            }
-        }
-
-        // Preserve the original failure for the caller.
+        // Preserve the original error for the caller.
         throw error;
     }
 };
