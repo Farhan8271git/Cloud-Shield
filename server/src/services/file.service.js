@@ -16,9 +16,37 @@ const BACKUP_DIRECTORY = path.resolve(
     "uploads", "backups"
 )
 
-// Create a secure file record from an actual uploaded file
-const createFile = async (userId, uploadedFile) => {
+const writeExclusiveFile = async (filePath, buffer, onCreated) => {
+    // Create a new file without overwriting an existing path.
+    const handle = await fs.open(filePath, "wx", 0o600);
 
+    // Record ownership immediately after creation succeeds.
+    onCreated();
+
+    let operationError = null;
+
+    try {
+        await handle.writeFile(buffer);
+    } catch (error) {
+        operationError = error;
+    }
+
+    // Always attempt to close the file handle.
+    try {
+        await handle.close();
+    } catch (error) {
+        if (!operationError) {
+            operationError = error;
+        }
+    }
+
+    if (operationError) {
+        throw operationError;
+    }
+};
+
+// Create a secure file record from an uploaded file.
+const createFile = async (userId, uploadedFile) => {
     if (!userId) {
         throw new AppError("User ID is required.", 400);
     }
@@ -27,120 +55,180 @@ const createFile = async (userId, uploadedFile) => {
         throw new AppError("Uploaded file is required.", 400);
     }
 
-    // validate uploade file 
-    const detectedFile = await validateUploadedFile(
-        uploadedFile
-    );
+    // Validate the uploaded file before writing anything to disk.
+    const detectedFile = await validateUploadedFile(uploadedFile);
 
-
-    // Generate SHA-256 from the actual file contents
+    // Calculate the SHA-256 hash of the uploaded content.
     const hash = crypto
         .createHash("sha256")
         .update(uploadedFile.buffer)
         .digest("hex");
 
-    // Generate a server-controlled filename
-    const extension = path.extname(
-        uploadedFile.originalname
-    );
+    // Generate server-controlled filenames.
+    const extension = path.extname(uploadedFile.originalname);
 
     const storedName = `${crypto.randomUUID()}${extension}`;
     const backupStoredName = `${crypto.randomUUID()}${extension}`;
 
-    // Server-controlled storage path
-    const storagePath = path.join("uploads", storedName);
-
-    const backupStoragePath = path.join("uploads", "backups", backupStoredName);
-
+    // Resolve the physical storage paths.
     const absolutePath = path.join(UPLOAD_DIRECTORY, storedName);
 
-    const absoluteBackupPath = path.join(BACKUP_DIRECTORY, backupStoredName);
+    const absoluteBackupPath = path.join(
+        BACKUP_DIRECTORY,
+        backupStoredName
+    );
 
-    // backup is generated from the same trusted original buffer
+    // Store relative paths in the database.
+    const storagePath = path.join("uploads", storedName);
+
+    const backupStoragePath = path.join(
+        "uploads",
+        "backups",
+        backupStoredName
+    );
+
+    // The backup originates from the same validated buffer.
     const backupHash = crypto
-        .createHash("sha256").update(uploadedFile.buffer).digest("hex");
+        .createHash("sha256")
+        .update(uploadedFile.buffer)
+        .digest("hex");
 
-    // defensive verfication before writing anything 
+    // Verify the expected content hash before writing to disk.
     if (hash !== backupHash) {
-        throw new AppError("Trusted backup verification failed.", 500);
+        throw new AppError(
+            "Trusted backup verification failed.",
+            500
+        );
     }
 
+    // Track which resources this operation successfully creates.
     let currentFileWritten = false;
     let backupFileWritten = false;
+    let createdFileId = null;
 
     try {
+        // Ensure both storage directories exist.
+        await fs.mkdir(UPLOAD_DIRECTORY, {
+            recursive: true,
+        });
 
-        // Ensure upload directory exists
-        await fs.mkdir(
-            UPLOAD_DIRECTORY,
-            { recursive: true }
-        );
+        await fs.mkdir(BACKUP_DIRECTORY, {
+            recursive: true,
+        });
 
-        // backup directory 
-        await fs.mkdir(
-            BACKUP_DIRECTORY,
-            { recursive: true }
-        );
-
-        // Write current file 
-        await fs.writeFile(
+        // Create the current file and track ownership immediately.
+        await writeExclusiveFile(
             absolutePath,
-            uploadedFile.buffer
+            uploadedFile.buffer,
+            () => {
+                currentFileWritten = true;
+            }
         );
 
-        currentFileWritten = true;
-
-        //Write trusted backup
-        await fs.writeFile(
-            absoluteBackupPath, uploadedFile.buffer
+        // Create the trusted backup and track ownership immediately.
+        await writeExclusiveFile(
+            absoluteBackupPath,
+            uploadedFile.buffer,
+            () => {
+                backupFileWritten = true;
+            }
         );
 
-        // Save metadata in MongoDB
+        // Read the backup from disk and verify its actual contents.
+        const storedBackupBuffer = await fs.readFile(absoluteBackupPath);
+
+        const storedBackupHash = crypto
+            .createHash("sha256")
+            .update(storedBackupBuffer)
+            .digest("hex");
+
+        if (storedBackupHash !== hash) {
+            throw new AppError(
+                "Trusted backup verification failed.",
+                500
+            );
+        }
+
+        // Create the database record only after both files exist.
         const file = await File.create({
             userId,
             originalName: uploadedFile.originalname,
-            storedName, storagePath,
+            storedName,
+            storagePath,
             mimeType: detectedFile.mimeType,
-            size: uploadedFile.size, hash,
-            backupStoredName, backupStoragePath,
+            size: uploadedFile.size,
+            hash,
+            backupStoredName,
+            backupStoragePath,
             backupHash,
             status: "pending",
             integrityStatus: "intact",
         });
 
-        // recod file creation 
+        createdFileId = file._id;
 
+        // Record the file creation activity.
         await fileActivityService.recordFileActivity({
-            userId, fileId: file._id,
+            userId,
+            fileId: file._id,
             activityType: "created",
             currentName: file.originalName,
         });
 
         return file;
     } catch (error) {
-
-        // If database creation fails after the file
-        // was written, remove the files whisch are created
-        try {
-            await fs.unlink(absolutePath);
-        } catch {
-            // Ignore cleanup failure.
-        }
-
-
-
-        if (backupFileWritten) {
+        // Roll back the database record if it was created.
+        if (createdFileId) {
             try {
-                await fs.unlink(absoluteBackupPath);
-            } catch {
-                // igonre cleanup
+                await File.deleteOne({
+                    _id: createdFileId,
+                    userId,
+                });
+            } catch (cleanupError) {
+                console.error(
+                    "Failed to remove file metadata after upload failure.",
+                    {
+                        fileId: String(createdFileId),
+                        message: cleanupError.message,
+                    }
+                );
             }
         }
 
-        throw error
+        // Remove only the current file created by this operation.
+        if (currentFileWritten) {
+            try {
+                await fs.unlink(absolutePath);
+            } catch (cleanupError) {
+                console.error(
+                    "Failed to clean up uploaded file.",
+                    {
+                        storedName,
+                        message: cleanupError.message,
+                    }
+                );
+            }
+        }
+
+        // Remove only the backup created by this operation.
+        if (backupFileWritten) {
+            try {
+                await fs.unlink(absoluteBackupPath);
+            } catch (cleanupError) {
+                console.error(
+                    "Failed to clean up backup file.",
+                    {
+                        backupStoredName,
+                        message: cleanupError.message,
+                    }
+                );
+            }
+        }
+
+        // Preserve the original failure for the caller.
+        throw error;
     }
 };
-
 
 // Find a file owned by authenticated user
 const getUserFile = async (fileId, userId) => {
