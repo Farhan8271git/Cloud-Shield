@@ -40,3 +40,56 @@
 .read-the-docs {
   color: #888;
 }
+
+
+/* Reusable status badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge-success {
+  color: #83dfbd;
+  border-color: #2b594d;
+  background: #193a34;
+}
+
+.badge-danger {
+  color: #ffaaa8;
+  border-color: #63343e;
+  background: #41252e;
+}
+
+.badge-warning {
+  color: #f4ca81;
+  border-color: #66502e;
+  background: #3c3222;
+}
+
+.badge-info {
+  color: #a5c2ff;
+  border-color: #344d76;
+  background: #202f4a;
+}
+
+.badge-neutral {
+  color: #b6c0d1;
+  border-color: #374257;
+  background: #242e40;
+}
