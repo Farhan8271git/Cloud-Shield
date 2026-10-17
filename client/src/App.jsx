@@ -1,4 +1,4 @@
-import { createElement, useMemo, useState } from "react";
+import { createElement, useMemo, useRef, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -213,6 +213,7 @@ function App() {
     "Personal environment",
   );
   // File upload preview state
+  const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadMessage, setUploadMessage] = useState(
@@ -624,7 +625,16 @@ function App() {
                   </div>
                   <UploadCloud size={22} />
                 </div>
-
+                <input
+                  ref={fileInputRef}
+                  id="cloud-shield-file-input"
+                  type="file"
+                  className="upload-input"
+                  onChange={(event) => {
+                    handleFileSelect(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
                 {!selectedFile ? (
                   <label
                     className={`upload-dropzone ${
