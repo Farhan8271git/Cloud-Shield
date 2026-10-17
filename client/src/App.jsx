@@ -1,4 +1,4 @@
-import { createElement, useMemo, useState } from 'react'
+import { createElement, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -28,7 +28,7 @@ import {
   Siren,
   UploadCloud,
   X,
-} from 'lucide-react'
+} from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -37,150 +37,150 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts'
-import './App.css'
+} from "recharts";
+import "./App.css";
 const navigation = [
-  { label: 'Overview', icon: LayoutDashboard },
-  { label: 'Threat detection', icon: ShieldAlert, count: '07' },
-  { label: 'Incidents', icon: Siren, count: '02' },
-  { label: 'Protected files', icon: Files },
-  { label: 'Backup management', icon: Database },
-  { label: 'Recovery center', icon: RefreshCw },
-]
+  { label: "Overview", icon: LayoutDashboard },
+  { label: "Threat detection", icon: ShieldAlert, count: "07" },
+  { label: "Incidents", icon: Siren, count: "02" },
+  { label: "Protected files", icon: Files },
+  { label: "Backup management", icon: Database },
+  { label: "Recovery center", icon: RefreshCw },
+];
 const secondaryNavigation = [
-  { label: 'Analytics & reports', icon: Activity },
-  { label: 'Audit logs', icon: FileClock },
-  { label: 'Settings', icon: Settings },
-]
+  { label: "Analytics & reports", icon: Activity },
+  { label: "Audit logs", icon: FileClock },
+  { label: "Settings", icon: Settings },
+];
 const metrics = [
   {
-    label: 'Protected files',
-    value: '12,480',
-    change: '+4.8%',
-    note: 'vs. previous period',
+    label: "Protected files",
+    value: "12,480",
+    change: "+4.8%",
+    note: "vs. previous period",
     icon: Files,
-    color: 'blue',
-    trend: 'up',
+    color: "blue",
+    trend: "up",
   },
   {
-    label: 'Threats detected',
-    value: '07',
-    change: '3 new',
-    note: 'in the last 24 hours',
+    label: "Threats detected",
+    value: "07",
+    change: "3 new",
+    note: "in the last 24 hours",
     icon: ShieldAlert,
-    color: 'amber',
-    trend: 'down',
+    color: "amber",
+    trend: "down",
   },
   {
-    label: 'Backup success rate',
-    value: '98.6%',
-    change: '+1.2%',
-    note: 'vs. previous period',
+    label: "Backup success rate",
+    value: "98.6%",
+    change: "+1.2%",
+    note: "vs. previous period",
     icon: Database,
-    color: 'teal',
-    trend: 'up',
+    color: "teal",
+    trend: "up",
   },
   {
-    label: 'Open incidents',
-    value: '02',
-    change: 'Needs review',
-    note: 'awaiting investigation',
+    label: "Open incidents",
+    value: "02",
+    change: "Needs review",
+    note: "awaiting investigation",
     icon: AlertTriangle,
-    color: 'red',
-    trend: 'neutral',
+    color: "red",
+    trend: "neutral",
   },
-]
+];
 const events = [
   {
-    title: 'Unusual file modification rate',
-    asset: 'cloud-storage-01',
-    time: '10:42:18 AM',
-    severity: 'High',
-    status: 'Investigating',
-    color: 'red',
+    title: "Unusual file modification rate",
+    asset: "cloud-storage-01",
+    time: "10:42:18 AM",
+    severity: "High",
+    status: "Investigating",
+    color: "red",
   },
   {
-    title: 'Backup integrity verification',
-    asset: 'backup-vault-02',
-    time: '10:31:06 AM',
-    severity: 'Info',
-    status: 'Completed',
-    color: 'teal',
+    title: "Backup integrity verification",
+    asset: "backup-vault-02",
+    time: "10:31:06 AM",
+    severity: "Info",
+    status: "Completed",
+    color: "teal",
   },
   {
-    title: 'Suspicious file extension detected',
-    asset: 'workstation-04',
-    time: '09:56:42 AM',
-    severity: 'Medium',
-    status: 'Under review',
-    color: 'amber',
+    title: "Suspicious file extension detected",
+    asset: "workstation-04",
+    time: "09:56:42 AM",
+    severity: "Medium",
+    status: "Under review",
+    color: "amber",
   },
   {
-    title: 'Scheduled backup completed',
-    asset: 'cloud-storage-01',
-    time: '09:30:00 AM',
-    severity: 'Info',
-    status: 'Completed',
-    color: 'teal',
+    title: "Scheduled backup completed",
+    asset: "cloud-storage-01",
+    time: "09:30:00 AM",
+    severity: "Info",
+    status: "Completed",
+    color: "teal",
   },
-]
+];
 const activityData = [
-  { day: '09 Oct', threats: 3, files: 18 },
-  { day: '10 Oct', threats: 5, files: 26 },
-  { day: '11 Oct', threats: 2, files: 16 },
-  { day: '12 Oct', threats: 8, files: 35 },
-  { day: '13 Oct', threats: 4, files: 22 },
-  { day: '14 Oct', threats: 7, files: 29 },
-  { day: '15 Oct', threats: 3, files: 19 },
-]
+  { day: "09 Oct", threats: 3, files: 18 },
+  { day: "10 Oct", threats: 5, files: 26 },
+  { day: "11 Oct", threats: 2, files: 16 },
+  { day: "12 Oct", threats: 8, files: 35 },
+  { day: "13 Oct", threats: 4, files: 22 },
+  { day: "14 Oct", threats: 7, files: 29 },
+  { day: "15 Oct", threats: 3, files: 19 },
+];
 const pageTitles = {
   Overview: [
-    'Security overview',
-    'Monitor your cloud environment and recovery readiness.',
+    "Security overview",
+    "Monitor your cloud environment and recovery readiness.",
   ],
-  'Threat detection': [
-    'Threat detection',
-    'Review suspicious activity and detection events.',
+  "Threat detection": [
+    "Threat detection",
+    "Review suspicious activity and detection events.",
   ],
   Incidents: [
-    'Incident management',
-    'Investigate security incidents and affected assets.',
+    "Incident management",
+    "Investigate security incidents and affected assets.",
   ],
-  'Protected files': [
-    'Protected files',
-    'Review monitored files and their protection status.',
+  "Protected files": [
+    "Protected files",
+    "Review monitored files and their protection status.",
   ],
-  'Backup management': [
-    'Backup management',
-    'Monitor backup jobs, storage and verification.',
+  "Backup management": [
+    "Backup management",
+    "Monitor backup jobs, storage and verification.",
   ],
-  'Recovery center': [
-    'Recovery center',
-    'Review recovery points and restoration readiness.',
+  "Recovery center": [
+    "Recovery center",
+    "Review recovery points and restoration readiness.",
   ],
-  'Analytics & reports': [
-    'Analytics & reports',
-    'Explore security and backup performance.',
+  "Analytics & reports": [
+    "Analytics & reports",
+    "Explore security and backup performance.",
   ],
-  'Audit logs': [
-    'Audit logs',
-    'Review recorded security and administrative events.',
+  "Audit logs": [
+    "Audit logs",
+    "Review recorded security and administrative events.",
   ],
   Settings: [
-    'Settings',
-    'Manage your workspace preferences and configuration.',
+    "Settings",
+    "Manage your workspace preferences and configuration.",
   ],
-}
-function Badge({ children, tone = 'neutral' }) {
+};
+function Badge({ children, tone = "neutral" }) {
   return (
     <span className={`badge badge-${tone}`}>
       <span className="badge-dot" />
       {children}
     </span>
-  )
+  );
 }
 function MetricCard({ metric }) {
-  const Icon = metric.icon
+  const Icon = metric.icon;
   return (
     <article className="metric-card">
       <div className="metric-top">
@@ -192,65 +192,65 @@ function MetricCard({ metric }) {
       <div className="metric-value">{metric.value}</div>
       <div className="metric-foot">
         <span className={`metric-change change-${metric.trend}`}>
-          {metric.trend === 'up' && <ArrowUpRight size={14} />}
-          {metric.trend === 'down' && <ArrowDownRight size={14} />}
+          {metric.trend === "up" && <ArrowUpRight size={14} />}
+          {metric.trend === "down" && <ArrowDownRight size={14} />}
           {metric.change}
         </span>
         <span className="metric-note">{metric.note}</span>
       </div>
     </article>
-  )
+  );
 }
 function App() {
-  const [activePage, setActivePage] = useState('Overview')
-  const [timeRange, setTimeRange] = useState('7 days')
-  const [search, setSearch] = useState('')
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [toast, setToast] = useState('')
-  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false)
-const [activeWorkspace, setActiveWorkspace] = useState(
-  'Personal environment'
-)
+  const [activePage, setActivePage] = useState("Overview");
+  const [timeRange, setTimeRange] = useState("7 days");
+  const [search, setSearch] = useState("");
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [toast, setToast] = useState("");
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [activeWorkspace, setActiveWorkspace] = useState(
+    "Personal environment",
+  );
   // File upload preview state
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [isDragging, setIsDragging] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [uploadMessage, setUploadMessage] = useState(
-    'Upload UI ready — backend is not connected yet.'
-  )
+    "Upload UI ready — backend is not connected yet.",
+  );
   const handleFileSelect = (file) => {
-    if (!file) return
-    setSelectedFile(file)
+    if (!file) return;
+    setSelectedFile(file);
     setUploadMessage(
-      `${file.name} selected. No file has been uploaded or scanned yet.`
-    )
-  }
+      `${file.name} selected. No file has been uploaded or scanned yet.`,
+    );
+  };
   const handleDrop = (event) => {
-    event.preventDefault()
-    setIsDragging(false)
-    handleFileSelect(event.dataTransfer.files?.[0])
-  }
+    event.preventDefault();
+    setIsDragging(false);
+    handleFileSelect(event.dataTransfer.files?.[0]);
+  };
   const filteredEvents = useMemo(() => {
-    const query = search.trim().toLowerCase()
-    if (!query) return events
+    const query = search.trim().toLowerCase();
+    if (!query) return events;
     return events.filter((event) =>
       `${event.title} ${event.asset} ${event.severity} ${event.status}`
         .toLowerCase()
-        .includes(query)
-    )
-  }, [search])
+        .includes(query),
+    );
+  }, [search]);
   const selectPage = (label) => {
-    setActivePage(label)
-    setSidebarOpen(false)
-    setShowNotifications(false)
-  }
+    setActivePage(label);
+    setSidebarOpen(false);
+    setShowNotifications(false);
+  };
   const notify = (message) => {
-    setToast(message)
-    window.setTimeout(() => setToast(''), 3000)
-  }
+    setToast(message);
+    window.setTimeout(() => setToast(""), 3000);
+  };
   const [pageTitle, pageDescription] =
-    pageTitles[activePage] ?? pageTitles.Overview
-    const currentPage = activePage;
+    pageTitles[activePage] ?? pageTitles.Overview;
+  const currentPage = activePage;
   return (
     <div className="app-shell">
       {sidebarOpen && (
@@ -260,12 +260,12 @@ const [activeWorkspace, setActiveWorkspace] = useState(
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
+      <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
         <div className="brand">
           <button
             type="button"
             className="brand-home"
-            onClick={() => selectPage('Overview')}
+            onClick={() => selectPage("Overview")}
             aria-label="Cloud Shield home"
           >
             <span className="brand-mark">
@@ -275,9 +275,7 @@ const [activeWorkspace, setActiveWorkspace] = useState(
               <span className="brand-name">
                 cloud<span>shield</span>
               </span>
-              <span className="brand-caption">
-                CLOUD SECURITY PLATFORM
-              </span>
+              <span className="brand-caption">CLOUD SECURITY PLATFORM</span>
             </span>
           </button>
           <button
@@ -289,60 +287,57 @@ const [activeWorkspace, setActiveWorkspace] = useState(
             <X size={18} />
           </button>
         </div>
-<div className="workspace-wrap">
-  <button
-    type="button"
-    className="workspace"
-    aria-expanded={showWorkspaceMenu}
-    aria-haspopup="true"
-    onClick={() => setShowWorkspaceMenu((open) => !open)}
-  >
-    <div className="workspace-avatar">
-      <Cloud size={17} />
-    </div>
-    <div className="workspace-copy">
-      <span>Workspace</span>
-      <strong>{activeWorkspace}</strong>
-    </div>
-    <ChevronDown
-      size={15}
-      className="workspace-chevron"
-    />
-  </button>
-  {showWorkspaceMenu && (
-    <div className="workspace-menu">
-      <span className="workspace-menu-label">
-        YOUR WORKSPACES
-      </span>
-      <button
-        type="button"
-        className="workspace-option"
-        onClick={() => {
-          setActiveWorkspace('Personal environment')
-          setShowWorkspaceMenu(false)
-          notify('Personal environment selected.')
-        }}
-      >
-        <Cloud size={17} />
-        <span>Personal environment</span>
-        {activeWorkspace === 'Personal environment' && (
-          <Check size={16} />
-        )}
-      </button>
-      <button
-        type="button"
-        className="workspace-option"
-        onClick={() => {
-          setShowWorkspaceMenu(false)
-          notify('Creating additional workspaces requires backend support.')
-        }}
-      >
-        <span className="workspace-add">+</span>
-        <span>Add workspace</span>
-      </button>
-    </div>
-  )}
-</div>
+        <div className="workspace-wrap">
+          <button
+            type="button"
+            className="workspace"
+            aria-expanded={showWorkspaceMenu}
+            aria-haspopup="true"
+            onClick={() => setShowWorkspaceMenu((open) => !open)}
+          >
+            <div className="workspace-avatar">
+              <Cloud size={17} />
+            </div>
+            <div className="workspace-copy">
+              <span>Workspace</span>
+              <strong>{activeWorkspace}</strong>
+            </div>
+            <ChevronDown size={15} className="workspace-chevron" />
+          </button>
+          {showWorkspaceMenu && (
+            <div className="workspace-menu">
+              <span className="workspace-menu-label">YOUR WORKSPACES</span>
+              <button
+                type="button"
+                className="workspace-option"
+                onClick={() => {
+                  setActiveWorkspace("Personal environment");
+                  setShowWorkspaceMenu(false);
+                  notify("Personal environment selected.");
+                }}
+              >
+                <Cloud size={17} />
+                <span>Personal environment</span>
+                {activeWorkspace === "Personal environment" && (
+                  <Check size={16} />
+                )}
+              </button>
+              <button
+                type="button"
+                className="workspace-option"
+                onClick={() => {
+                  setShowWorkspaceMenu(false);
+                  notify(
+                    "Creating additional workspaces requires backend support.",
+                  );
+                }}
+              >
+                <span className="workspace-add">+</span>
+                <span>Add workspace</span>
+              </button>
+            </div>
+          )}
+        </div>
         <div className="sidebar-section-label">WORKSPACE</div>
         <nav className="sidebar-nav" aria-label="Main navigation">
           {navigation.map(({ label, icon: Icon, count }) => (
@@ -350,7 +345,7 @@ const [activeWorkspace, setActiveWorkspace] = useState(
               type="button"
               key={label}
               className={`nav-item ${
-                activePage === label ? 'nav-item-active' : ''
+                activePage === label ? "nav-item-active" : ""
               }`}
               onClick={() => selectPage(label)}
             >
@@ -359,7 +354,7 @@ const [activeWorkspace, setActiveWorkspace] = useState(
               {count && (
                 <span
                   className={`nav-count ${
-                    label === 'Incidents' ? 'nav-count-alert' : ''
+                    label === "Incidents" ? "nav-count-alert" : ""
                   }`}
                 >
                   {count}
@@ -377,7 +372,7 @@ const [activeWorkspace, setActiveWorkspace] = useState(
               type="button"
               key={label}
               className={`nav-item ${
-                activePage === label ? 'nav-item-active' : ''
+                activePage === label ? "nav-item-active" : ""
               }`}
               onClick={() => selectPage(label)}
             >
@@ -396,10 +391,7 @@ const [activeWorkspace, setActiveWorkspace] = useState(
             Keep your recovery points verified and your cloud environment
             monitored.
           </p>
-          <button
-            type="button"
-            onClick={() => selectPage('Recovery center')}
-          >
+          <button type="button" onClick={() => selectPage("Recovery center")}>
             Review recovery <ArrowRight size={14} />
           </button>
         </div>
@@ -407,7 +399,7 @@ const [activeWorkspace, setActiveWorkspace] = useState(
           type="button"
           className="profile-card"
           onClick={() =>
-            notify('Profile settings are part of the upcoming integration.')
+            notify("Profile settings are part of the upcoming integration.")
           }
         >
           <div className="profile-avatar">FS</div>
@@ -451,9 +443,7 @@ const [activeWorkspace, setActiveWorkspace] = useState(
                 type="button"
                 className="icon-button notification-button"
                 aria-label="Notifications"
-                onClick={() =>
-                  setShowNotifications((value) => !value)
-                }
+                onClick={() => setShowNotifications((value) => !value)}
               >
                 <Bell size={19} />
                 <span className="notification-dot" />
@@ -493,554 +483,615 @@ const [activeWorkspace, setActiveWorkspace] = useState(
           </div>
         </header>
         <div className="page-content">
-          {currentPage !== 'Overview' ? (
-  <section className="panel" style={{ padding: 24 }}>
-    <div className="panel-header">
-      <div>
-        <h2>{pageTitle}</h2>
-        <p>{pageDescription}</p>
-      </div>
-      <ShieldCheck size={24} />
-    </div>
-    {currentPage === 'Threat detection' && (
-      <div>
-        <h3>Detected threats</h3>
-        {events
-          .filter((event) => event.color === 'red' || event.color === 'amber')
-          .map((event) => (
-            <div key={event.title} className="selected-file">
-              <ShieldAlert size={20} />
-              <div>
-                <strong>{event.title}</strong>
-                <span>
-                  {event.severity} · {event.status} · {event.time}
-                </span>
+          {currentPage !== "Overview" ? (
+            <section className="panel" style={{ padding: 24 }}>
+              <div className="panel-header">
+                <div>
+                  <h2>{pageTitle}</h2>
+                  <p>{pageDescription}</p>
+                </div>
+                <ShieldCheck size={24} />
               </div>
-            </div>
-          ))}
-      </div>
-    )}
-    {currentPage === 'Incidents' && (
-      <div>
-        <h3>Open incidents</h3>
-        <p>Unusual file modification rate — Investigating</p>
-        <p>Suspicious file extension detected — Under review</p>
-      </div>
-    )}
-    {currentPage === 'Protected files' && (
-      <p>File inventory is currently demo-only. Backend connection is pending.</p>
-    )}
-    {currentPage === 'Backup management' && (
-      <div>
-        <h3>Backup summary</h3>
-        <p>Successful jobs: 286 (demo)</p>
-        <p>Failed jobs: 04 (demo)</p>
-        <p>Success rate: 98.6% (demo)</p>
-      </div>
-    )}
-    {currentPage === 'Recovery center' && (
-      <p>Recovery actions are not connected to the backend yet.</p>
-    )}
-    {currentPage === 'Analytics & reports' && (
-      <p>Security activity chart is available on the Overview dashboard.</p>
-    )}
-    {currentPage === 'Audit logs' && (
-      <div>
-        {events.map((event) => (
-          <p key={event.title}>
-            {event.time} — {event.title} — {event.status}
-          </p>
-        ))}
-      </div>
-    )}
-    {currentPage === 'Settings' && (
-      <p>Workspace settings are currently a frontend preview.</p>
-    )}
-    <button
-      type="button"
-      className="button button-secondary"
-      onClick={() => selectPage('Overview')}
-    >
-      <ArrowRight size={15} />
-      Back to overview
-    </button>
-  </section>
-) : (
-  <>
-          <div className="page-heading">
-            <div>
-              <div className="eyebrow">
-                <span className="eyebrow-line" />
-                SECURITY OPERATIONS
-              </div>
-              <h1>{pageTitle}</h1>
-              <p>{pageDescription}</p>
-            </div>
-            <div className="heading-actions">
+              {currentPage === "Threat detection" && (
+                <div>
+                  <h3>Detected threats</h3>
+                  {events
+                    .filter(
+                      (event) =>
+                        event.color === "red" || event.color === "amber",
+                    )
+                    .map((event) => (
+                      <div key={event.title} className="selected-file">
+                        <ShieldAlert size={20} />
+                        <div>
+                          <strong>{event.title}</strong>
+                          <span>
+                            {event.severity} · {event.status} · {event.time}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+              {currentPage === "Incidents" && (
+                <div>
+                  <h3>Open incidents</h3>
+                  <p>Unusual file modification rate — Investigating</p>
+                  <p>Suspicious file extension detected — Under review</p>
+                </div>
+              )}
+              {currentPage === "Protected files" && (
+                <p>
+                  File inventory is currently demo-only. Backend connection is
+                  pending.
+                </p>
+              )}
+              {currentPage === "Backup management" && (
+                <div>
+                  <h3>Backup summary</h3>
+                  <p>Successful jobs: 286 (demo)</p>
+                  <p>Failed jobs: 04 (demo)</p>
+                  <p>Success rate: 98.6% (demo)</p>
+                </div>
+              )}
+              {currentPage === "Recovery center" && (
+                <p>Recovery actions are not connected to the backend yet.</p>
+              )}
+              {currentPage === "Analytics & reports" && (
+                <p>
+                  Security activity chart is available on the Overview
+                  dashboard.
+                </p>
+              )}
+              {currentPage === "Audit logs" && (
+                <div>
+                  {events.map((event) => (
+                    <p key={event.title}>
+                      {event.time} — {event.title} — {event.status}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {currentPage === "Settings" && (
+                <p>Workspace settings are currently a frontend preview.</p>
+              )}
               <button
                 type="button"
                 className="button button-secondary"
-                onClick={() => notify('Demo data refreshed.')}
+                onClick={() => selectPage("Overview")}
               >
-                <RefreshCw size={15} />
-                Refresh
+                <ArrowRight size={15} />
+                Back to overview
               </button>
-              <button
-                type="button"
-                className="button button-primary"
-                onClick={() => selectPage('Recovery center')}
-              >
-                <RefreshCw size={15} />
-                Recovery center
-              </button>
-            </div>
-          </div>
-          <div className="demo-notice">
-            <span className="demo-notice-icon">
-              <CircleHelp size={16} />
-            </span>
-            <span>
-              <strong>Preview mode</strong> — The figures and events shown here
-              are illustrative demo data, not live security telemetry.
-            </span>
-            <button
-              type="button"
-              aria-label="Dismiss preview notice"
-              onClick={(event) =>
-                event.currentTarget.parentElement.remove()
-              }
-            >
-              <X size={16} />
-            </button>
-          </div>
-          {/* File upload preview */}
-          <section className="panel upload-panel">
-            <div className="panel-header">
-              <div>
-                <h2>Upload a file</h2>
-                <p>
-                  Select a file for the future security scanning workflow.
-                </p>
-              </div>
-              <UploadCloud size={22} />
-            </div>
-            <label
-              className={`upload-dropzone ${
-                isDragging ? 'upload-dropzone-active' : ''
-              }`}
-              onDragOver={(event) => {
-                event.preventDefault()
-                setIsDragging(true)
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                className="upload-input"
-                onChange={(event) => {
-                  handleFileSelect(event.target.files?.[0])
-                  event.target.value = ''
-                }}
-              />
-              <UploadCloud size={30} />
-              <strong>Drag and drop a file here</strong>
-              <span>or click to browse your computer</span>
-              <span className="upload-button-label">Choose file</span>
-            </label>
-            {selectedFile && (
-              <div className="selected-file">
-                <File size={20} />
+            </section>
+          ) : (
+            <>
+              <div className="page-heading">
                 <div>
-                  <strong>{selectedFile.name}</strong>
-                  <span>
-                    {(selectedFile.size / 1024).toFixed(1)} KB
-                  </span>
+                  <div className="eyebrow">
+                    <span className="eyebrow-line" />
+                    SECURITY OPERATIONS
+                  </div>
+                  <h1>{pageTitle}</h1>
+                  <p>{pageDescription}</p>
                 </div>
+                <div className="heading-actions">
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    onClick={() => notify("Demo data refreshed.")}
+                  >
+                    <RefreshCw size={15} />
+                    Refresh
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-primary"
+                    onClick={() => selectPage("Recovery center")}
+                  >
+                    <RefreshCw size={15} />
+                    Recovery center
+                  </button>
+                </div>
+              </div>
+              <div className="demo-notice">
+                <span className="demo-notice-icon">
+                  <CircleHelp size={16} />
+                </span>
+                <span>
+                  <strong>Preview mode</strong> — The figures and events shown
+                  here are illustrative demo data, not live security telemetry.
+                </span>
                 <button
                   type="button"
-                  className="icon-button"
-                  aria-label="Clear selected file"
-                  onClick={() => {
-                    setSelectedFile(null)
-                    setUploadMessage('No file selected.')
-                  }}
+                  aria-label="Dismiss preview notice"
+                  onClick={(event) =>
+                    event.currentTarget.parentElement.remove()
+                  }
                 >
                   <X size={16} />
                 </button>
               </div>
-            )}
-            <p className="upload-message" role="status">
-              {uploadMessage}
-            </p>
-            <p className="upload-disclaimer">
-              Preview only — file upload and ransomware scanning are not
-              connected yet.
-            </p>
-          </section>
-          <section className="protection-banner">
-            <div className="protection-symbol">
-              <ShieldCheck size={25} />
-            </div>
-            <div className="protection-copy">
-              <div className="protection-title-row">
-                <h2>Protection overview</h2>
-                <Badge tone="success">Demo status: healthy</Badge>
-              </div>
-              <p>
-                Your sample workspace is ready for monitoring. Review open
-                incidents and verify your recovery points.
-              </p>
-            </div>
-            <div className="protection-meta">
-              <span>WORKSPACE STATUS</span>
-              <strong>
-                <span className="status-pulse" />
-                Operational (demo)
-              </strong>
-            </div>
-            <button
-              type="button"
-              className="banner-arrow"
-              aria-label="View threat detection"
-              onClick={() => selectPage('Threat detection')}
-            >
-              <ArrowRight size={19} />
-            </button>
-          </section>
-          <section className="metrics-grid" aria-label="Security metrics">
-            {metrics.map((metric) => (
-              <MetricCard key={metric.label} metric={metric} />
-            ))}
-          </section>
-          <section className="dashboard-grid">
-            <article className="panel activity-panel">
-              <div className="panel-header">
-                <div>
-                  <h2>Security activity</h2>
-                  <p>Detection events over time</p>
+              {/* File upload preview */}
+
+              <section className="panel upload-panel">
+                <div className="panel-header">
+                  <div>
+                    <h2>Upload a file</h2>
+                    <p>
+                      Select a file for the security-scanning workflow preview.
+                    </p>
+                  </div>
+                  <UploadCloud size={22} />
                 </div>
-                <label className="select-wrap">
-                  <select
-                    value={timeRange}
-                    onChange={(event) =>
-                      setTimeRange(event.target.value)
-                    }
-                    aria-label="Chart time range"
+
+                {!selectedFile ? (
+                  <label
+                    className={`upload-dropzone ${
+                      isDragging ? "upload-dropzone-active" : ""
+                    }`}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
                   >
-                    <option>7 days</option>
-                    <option>30 days</option>
-                    <option>90 days</option>
-                  </select>
-                  <ChevronDown size={14} />
-                </label>
-              </div>
-              <div className="chart-legend">
-                <span>
-                  <i className="legend-dot legend-threat" />
-                  Threat events
-                </span>
-                <span>
-                  <i className="legend-dot legend-files" />
-                  File activity
-                </span>
-              </div>
-              <div className="activity-chart">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={activityData}
-                    margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id="threatFill"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="#6692ff"
-                          stopOpacity={0.22}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#6692ff"
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                      <linearGradient
-                        id="fileFill"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="#52c8ba"
-                          stopOpacity={0.12}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#52c8ba"
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid
-                      stroke="#e9edf3"
-                      strokeDasharray="3 4"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="day"
-                      tick={{ fill: '#8792a5', fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                      dy={10}
-                    />
-                    <YAxis
-                      tick={{ fill: '#8792a5', fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        border: '1px solid #e5eaf1',
-                        borderRadius: 10,
-                        fontSize: 12,
+                    <input
+                      id="cloud-shield-file-input"
+                      type="file"
+                      className="upload-input"
+                      onChange={(event) => {
+                        handleFileSelect(event.target.files?.[0]);
+                        event.target.value = "";
                       }}
                     />
-                    <Area
-                      type="monotone"
-                      dataKey="files"
-                      name="File activity"
-                      stroke="#52b9ac"
-                      strokeWidth={2}
-                      fill="url(#fileFill)"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="threats"
-                      name="Threat events"
-                      stroke="#6287ed"
-                      strokeWidth={2.2}
-                      fill="url(#threatFill)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="chart-footer">
-                <span>
-                  <Activity size={14} />
-                  Activity is based on sample events
-                </span>
-                <button
-                  type="button"
-                  onClick={() => selectPage('Analytics & reports')}
-                >
-                  View analytics <ArrowRight size={14} />
-                </button>
-              </div>
-            </article>
-            <article className="panel backup-panel">
-              <div className="panel-header">
-                <div>
-                  <h2>Backup health</h2>
-                  <p>Sample recovery readiness</p>
-                </div>
-                <button
-                  type="button"
-                  className="icon-button subtle-icon"
-                  aria-label="Backup options"
-                  onClick={() =>
-                    notify(
-                      'Backup settings will be connected to the backend later.'
-                    )
-                  }
-                >
-                  <MoreHorizontal size={19} />
-                </button>
-              </div>
-              <div className="backup-score">
-                <div className="score-ring">
-                  <div>
-                    <strong>
-                      98.6<span>%</span>
-                    </strong>
-                    <small>Success rate</small>
+                    <UploadCloud size={30} />
+                    <strong>Drag and drop a file here</strong>
+                    <span>or click to browse your computer</span>
+                    <span className="upload-button-label">Choose file</span>
+                  </label>
+                ) : (
+                  <div className="file-ready-card">
+                    <div className="file-ready-heading">
+                      <span className="file-ready-icon">
+                        <File size={23} />
+                      </span>
+                      <div className="file-ready-copy">
+                        <strong>File ready to scan</strong>
+                        <span>
+                          Your file is selected and ready for the next step.
+                        </span>
+                      </div>
+                      <span className="file-ready-badge">Selected</span>
+                    </div>
+
+                    <div className="selected-file">
+                      <File size={20} />
+                      <div>
+                        <strong>{selectedFile.name}</strong>
+                        <span>
+                          {selectedFile.size < 1024 * 1024
+                            ? `${(selectedFile.size / 1024).toFixed(1)} KB`
+                            : `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="button button-secondary replace-file-button"
+                        onClick={() =>
+                          document
+                            .getElementById("cloud-shield-file-input")
+                            ?.click()
+                        }
+                      >
+                        Replace file
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button"
+                        aria-label="Remove selected file"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          setUploadMessage("No file selected.");
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    <div className="upload-submit-row">
+                      <button
+                        type="button"
+                        className="button button-primary upload-submit-button"
+                        onClick={() =>
+                          setUploadMessage(
+                            `${selectedFile.name} is selected. Backend upload and ransomware scanning are not connected yet.`,
+                          )
+                        }
+                      >
+                        <UploadCloud size={17} />
+                        Upload &amp; Scan
+                      </button>
+                    </div>
                   </div>
+                )}
+
+                <p className="upload-message" role="status">
+                  {uploadMessage}
+                </p>
+                <p className="upload-disclaimer">
+                  Preview only — file upload and ransomware scanning are not
+                  connected yet.
+                </p>
+              </section>
+
+              <section className="protection-banner">
+                <div className="protection-symbol">
+                  <ShieldCheck size={25} />
                 </div>
-                <div className="backup-score-copy">
-                  <Badge tone="success">Healthy (demo)</Badge>
+                <div className="protection-copy">
+                  <div className="protection-title-row">
+                    <h2>Protection overview</h2>
+                    <Badge tone="success">Demo status: healthy</Badge>
+                  </div>
                   <p>
-                    Sample backup performance for the selected reporting period.
+                    Your sample workspace is ready for monitoring. Review open
+                    incidents and verify your recovery points.
                   </p>
                 </div>
-              </div>
-              <div className="backup-stats">
-                <div>
-                  <span>
-                    <i className="mini-dot dot-green" />
-                    Successful jobs
-                  </span>
-                  <strong>286</strong>
-                </div>
-                <div>
-                  <span>
-                    <i className="mini-dot dot-amber" />
-                    Failed jobs
-                  </span>
-                  <strong>04</strong>
-                </div>
-                <div>
-                  <span>
-                    <i className="mini-dot dot-blue" />
-                    Storage used
-                  </span>
-                  <strong>64.2 GB</strong>
-                </div>
-              </div>
-              <div className="last-backup">
-                <span className="last-backup-icon">
-                  <HardDrive size={17} />
-                </span>
-                <div>
-                  <span>Last successful backup</span>
+                <div className="protection-meta">
+                  <span>WORKSPACE STATUS</span>
                   <strong>
-                    Today, 09:30 AM{' '}
-                    <span className="verified-check">
-                      <Check size={11} />
-                    </span>
+                    <span className="status-pulse" />
+                    Operational (demo)
                   </strong>
                 </div>
-                <Badge tone="success">Sample</Badge>
-              </div>
-              <button
-                type="button"
-                className="text-link backup-link"
-                onClick={() => selectPage('Backup management')}
-              >
-                View backup management <ArrowRight size={14} />
-              </button>
-            </article>
-          </section>
-          <section className="panel events-panel">
-            <div className="panel-header events-heading">
-              <div>
-                <h2>Recent security events</h2>
-                <p>Latest entries from the sample event feed</p>
-              </div>
-              <button
-                type="button"
-                className="button button-secondary button-small"
-                onClick={() => selectPage('Threat detection')}
-              >
-                View all events <ArrowRight size={14} />
-              </button>
-            </div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>EVENT</th>
-                    <th>AFFECTED ASSET</th>
-                    <th>TIME</th>
-                    <th>SEVERITY</th>
-                    <th>STATUS</th>
-                    <th aria-label="Actions" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredEvents.map((event) => (
-                    <tr key={`${event.title}-${event.time}`}>
-                      <td>
-                        <div className="event-title-cell">
-                          <span
-                            className={`event-icon event-icon-${event.color}`}
+                <button
+                  type="button"
+                  className="banner-arrow"
+                  aria-label="View threat detection"
+                  onClick={() => selectPage("Threat detection")}
+                >
+                  <ArrowRight size={19} />
+                </button>
+              </section>
+              <section className="metrics-grid" aria-label="Security metrics">
+                {metrics.map((metric) => (
+                  <MetricCard key={metric.label} metric={metric} />
+                ))}
+              </section>
+              <section className="dashboard-grid">
+                <article className="panel activity-panel">
+                  <div className="panel-header">
+                    <div>
+                      <h2>Security activity</h2>
+                      <p>Detection events over time</p>
+                    </div>
+                    <label className="select-wrap">
+                      <select
+                        value={timeRange}
+                        onChange={(event) => setTimeRange(event.target.value)}
+                        aria-label="Chart time range"
+                      >
+                        <option>7 days</option>
+                        <option>30 days</option>
+                        <option>90 days</option>
+                      </select>
+                      <ChevronDown size={14} />
+                    </label>
+                  </div>
+                  <div className="chart-legend">
+                    <span>
+                      <i className="legend-dot legend-threat" />
+                      Threat events
+                    </span>
+                    <span>
+                      <i className="legend-dot legend-files" />
+                      File activity
+                    </span>
+                  </div>
+                  <div className="activity-chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={activityData}
+                        margin={{ top: 12, right: 8, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="threatFill"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
                           >
-                            {event.color === 'red' ? (
-                              <ShieldAlert size={16} />
-                            ) : event.color === 'amber' ? (
-                              <FileSearch size={16} />
-                            ) : (
-                              <ShieldCheck size={16} />
-                            )}
-                          </span>
-                          <span>{event.title}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <code>{event.asset}</code>
-                      </td>
-                      <td className="event-time">{event.time}</td>
-                      <td>
-                        <Badge
-                          tone={
-                            event.color === 'red'
-                              ? 'danger'
-                              : event.color === 'amber'
-                                ? 'warning'
-                                : 'info'
-                          }
-                        >
-                          {event.severity}
-                        </Badge>
-                      </td>
-                      <td>
-                        <span className={`status-text status-${event.color}`}>
-                          <span />
-                          {event.status}
+                            <stop
+                              offset="0%"
+                              stopColor="#6692ff"
+                              stopOpacity={0.22}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#6692ff"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                          <linearGradient
+                            id="fileFill"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor="#52c8ba"
+                              stopOpacity={0.12}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#52c8ba"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          stroke="#e9edf3"
+                          strokeDasharray="3 4"
+                          vertical={false}
+                        />
+                        <XAxis
+                          dataKey="day"
+                          tick={{ fill: "#8792a5", fontSize: 11 }}
+                          tickLine={false}
+                          axisLine={false}
+                          dy={10}
+                        />
+                        <YAxis
+                          tick={{ fill: "#8792a5", fontSize: 11 }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            border: "1px solid #e5eaf1",
+                            borderRadius: 10,
+                            fontSize: 12,
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="files"
+                          name="File activity"
+                          stroke="#52b9ac"
+                          strokeWidth={2}
+                          fill="url(#fileFill)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="threats"
+                          name="Threat events"
+                          stroke="#6287ed"
+                          strokeWidth={2.2}
+                          fill="url(#threatFill)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="chart-footer">
+                    <span>
+                      <Activity size={14} />
+                      Activity is based on sample events
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => selectPage("Analytics & reports")}
+                    >
+                      View analytics <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </article>
+                <article className="panel backup-panel">
+                  <div className="panel-header">
+                    <div>
+                      <h2>Backup health</h2>
+                      <p>Sample recovery readiness</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="icon-button subtle-icon"
+                      aria-label="Backup options"
+                      onClick={() =>
+                        notify(
+                          "Backup settings will be connected to the backend later.",
+                        )
+                      }
+                    >
+                      <MoreHorizontal size={19} />
+                    </button>
+                  </div>
+                  <div className="backup-score">
+                    <div className="score-ring">
+                      <div>
+                        <strong>
+                          98.6<span>%</span>
+                        </strong>
+                        <small>Success rate</small>
+                      </div>
+                    </div>
+                    <div className="backup-score-copy">
+                      <Badge tone="success">Healthy (demo)</Badge>
+                      <p>
+                        Sample backup performance for the selected reporting
+                        period.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="backup-stats">
+                    <div>
+                      <span>
+                        <i className="mini-dot dot-green" />
+                        Successful jobs
+                      </span>
+                      <strong>286</strong>
+                    </div>
+                    <div>
+                      <span>
+                        <i className="mini-dot dot-amber" />
+                        Failed jobs
+                      </span>
+                      <strong>04</strong>
+                    </div>
+                    <div>
+                      <span>
+                        <i className="mini-dot dot-blue" />
+                        Storage used
+                      </span>
+                      <strong>64.2 GB</strong>
+                    </div>
+                  </div>
+                  <div className="last-backup">
+                    <span className="last-backup-icon">
+                      <HardDrive size={17} />
+                    </span>
+                    <div>
+                      <span>Last successful backup</span>
+                      <strong>
+                        Today, 09:30 AM{" "}
+                        <span className="verified-check">
+                          <Check size={11} />
                         </span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="row-action"
-                          aria-label={`View ${event.title}`}
-                          onClick={() =>
-                            notify(`Demo event: ${event.title}`)
-                          }
-                        >
-                          <ArrowUpRight size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredEvents.length === 0 && (
-                    <tr>
-                      <td colSpan="6" className="empty-state">
-                        No sample events match “{search}”. Try another search.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="table-footer">
-              <span>
-                Showing {filteredEvents.length} of {events.length} sample events
-              </span>
-              <button type="button" onClick={() => setSearch('')}>
-                Clear search <X size={13} />
-              </button>
-            </div>
-          </section>
-          <footer className="page-footer">
-            <span>
-              Cloud-Shield <span className="footer-separator">·</span> Security
-              &amp; recovery workspace
-            </span>
-            <span>
-              <span className="footer-status-dot" />
-              {' '}Prototype UI <span className="footer-separator">·</span>
-              {' '}Not connected to live monitoring
-            </span>
-          </footer>
+                      </strong>
+                    </div>
+                    <Badge tone="success">Sample</Badge>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-link backup-link"
+                    onClick={() => selectPage("Backup management")}
+                  >
+                    View backup management <ArrowRight size={14} />
+                  </button>
+                </article>
+              </section>
+              <section className="panel events-panel">
+                <div className="panel-header events-heading">
+                  <div>
+                    <h2>Recent security events</h2>
+                    <p>Latest entries from the sample event feed</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="button button-secondary button-small"
+                    onClick={() => selectPage("Threat detection")}
+                  >
+                    View all events <ArrowRight size={14} />
+                  </button>
+                </div>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>EVENT</th>
+                        <th>AFFECTED ASSET</th>
+                        <th>TIME</th>
+                        <th>SEVERITY</th>
+                        <th>STATUS</th>
+                        <th aria-label="Actions" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredEvents.map((event) => (
+                        <tr key={`${event.title}-${event.time}`}>
+                          <td>
+                            <div className="event-title-cell">
+                              <span
+                                className={`event-icon event-icon-${event.color}`}
+                              >
+                                {event.color === "red" ? (
+                                  <ShieldAlert size={16} />
+                                ) : event.color === "amber" ? (
+                                  <FileSearch size={16} />
+                                ) : (
+                                  <ShieldCheck size={16} />
+                                )}
+                              </span>
+                              <span>{event.title}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <code>{event.asset}</code>
+                          </td>
+                          <td className="event-time">{event.time}</td>
+                          <td>
+                            <Badge
+                              tone={
+                                event.color === "red"
+                                  ? "danger"
+                                  : event.color === "amber"
+                                    ? "warning"
+                                    : "info"
+                              }
+                            >
+                              {event.severity}
+                            </Badge>
+                          </td>
+                          <td>
+                            <span
+                              className={`status-text status-${event.color}`}
+                            >
+                              <span />
+                              {event.status}
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="row-action"
+                              aria-label={`View ${event.title}`}
+                              onClick={() =>
+                                notify(`Demo event: ${event.title}`)
+                              }
+                            >
+                              <ArrowUpRight size={16} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredEvents.length === 0 && (
+                        <tr>
+                          <td colSpan="6" className="empty-state">
+                            No sample events match “{search}”. Try another
+                            search.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="table-footer">
+                  <span>
+                    Showing {filteredEvents.length} of {events.length} sample
+                    events
+                  </span>
+                  <button type="button" onClick={() => setSearch("")}>
+                    Clear search <X size={13} />
+                  </button>
+                </div>
+              </section>
+              <footer className="page-footer">
+                <span>
+                  Cloud-Shield <span className="footer-separator">·</span>{" "}
+                  Security &amp; recovery workspace
+                </span>
+                <span>
+                  <span className="footer-status-dot" /> Prototype UI{" "}
+                  <span className="footer-separator">·</span> Not connected to
+                  live monitoring
+                </span>
+              </footer>
             </>
-)}
+          )}
         </div>
       </main>
       {toast && (
@@ -1050,13 +1101,13 @@ const [activeWorkspace, setActiveWorkspace] = useState(
           <button
             type="button"
             aria-label="Dismiss notification"
-            onClick={() => setToast('')}
+            onClick={() => setToast("")}
           >
             <X size={15} />
           </button>
         </div>
       )}
     </div>
-  )
+  );
 }
-export default App
+export default App;
