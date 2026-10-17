@@ -7,4 +7,7 @@ const router = Router ();
 
 router.get ("/activity", authenticate, detectionController.getRecentActivity);
 
+// Analyze recent file activity for suspicious signals.
+router.get( "/detection", authenticate, detectionController.detectSuspiciousActivity );
+
 export default router;
