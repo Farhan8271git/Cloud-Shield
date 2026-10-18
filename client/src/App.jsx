@@ -219,13 +219,52 @@ function App() {
   const [uploadMessage, setUploadMessage] = useState(
     "Upload UI ready — backend is not connected yet.",
   );
+
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  const ALLOWED_EXTENSIONS = [
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+    ".txt",
+    ".csv",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".zip",
+  ];
+
   const handleFileSelect = (file) => {
     if (!file) return;
-    setSelectedFile(file);
-    setUploadMessage(
-      `${file.name} selected. No file has been uploaded or scanned yet.`,
+
+    const fileName = file.name.toLowerCase();
+    const isAllowedType = ALLOWED_EXTENSIONS.some((extension) =>
+      fileName.endsWith(extension),
     );
+
+    if (!isAllowedType) {
+      setUploadMessage("Invalid file type. Please select a supported file.");
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadMessage("File is too large. Maximum allowed size is 10 MB.");
+      return;
+    }
+
+    if (file.size === 0) {
+      setUploadMessage("Empty files cannot be selected.");
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadMessage(`${file.name} selected successfully. Ready for scanning.`);
   };
+
   const handleDrop = (event) => {
     event.preventDefault();
     setIsDragging(false);
@@ -629,6 +668,7 @@ function App() {
                   ref={fileInputRef}
                   id="cloud-shield-file-input"
                   type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.zip"
                   className="upload-input"
                   onChange={(event) => {
                     handleFileSelect(event.target.files?.[0]);
@@ -637,6 +677,7 @@ function App() {
                 />
                 {!selectedFile ? (
                   <label
+                    htmlFor="cloud-shield-file-input"
                     className={`upload-dropzone ${
                       isDragging ? "upload-dropzone-active" : ""
                     }`}
@@ -647,15 +688,6 @@ function App() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={handleDrop}
                   >
-                    <input
-                      id="cloud-shield-file-input"
-                      type="file"
-                      className="upload-input"
-                      onChange={(event) => {
-                        handleFileSelect(event.target.files?.[0]);
-                        event.target.value = "";
-                      }}
-                    />
                     <UploadCloud size={30} />
                     <strong>Drag and drop a file here</strong>
                     <span>or click to browse your computer</span>
@@ -716,7 +748,7 @@ function App() {
                         className="button button-primary upload-submit-button"
                         onClick={() =>
                           setUploadMessage(
-                            `${selectedFile.name} is selected. Backend upload and ransomware scanning are not connected yet.`,
+                            "Scanning is not available yet. Backend integration is pending.",
                           )
                         }
                       >
@@ -727,9 +759,31 @@ function App() {
                   </div>
                 )}
 
-                <p className="upload-message" role="status">
-                  {uploadMessage}
-                </p>
+                <div
+                  className={`upload-message ${
+                    uploadMessage.includes("Invalid") ||
+                    uploadMessage.includes("too large") ||
+                    uploadMessage.includes("Empty")
+                      ? "upload-message-error"
+                      : uploadMessage.includes("successfully")
+                        ? "upload-message-success"
+                        : "upload-message-info"
+                  }`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  <strong>
+                    {uploadMessage.includes("Invalid") ||
+                    uploadMessage.includes("too large") ||
+                    uploadMessage.includes("Empty")
+                      ? "⚠ Validation Error"
+                      : uploadMessage.includes("successfully")
+                        ? "✓ File Validated"
+                        : "ⓘ Upload Status"}
+                  </strong>
+                  <span>{uploadMessage}</span>
+                </div>
+
                 <p className="upload-disclaimer">
                   Preview only — file upload and ransomware scanning are not
                   connected yet.
