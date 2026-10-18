@@ -204,6 +204,7 @@ function MetricCard({ metric }) {
 function App() {
   const [activePage, setActivePage] = useState("Overview");
   const [timeRange, setTimeRange] = useState("7 days");
+
   const [search, setSearch] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -219,6 +220,10 @@ function App() {
   const [uploadMessage, setUploadMessage] = useState(
     "Upload UI ready — backend is not connected yet.",
   );
+
+  const [scanStatus, setScanStatus] = useState("idle");
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanResult, setScanResult] = useState(null);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -270,6 +275,34 @@ function App() {
     setIsDragging(false);
     handleFileSelect(event.dataTransfer.files?.[0]);
   };
+
+  const handleScan = () => {
+    if (!selectedFile || scanStatus === "scanning") return;
+
+    setScanStatus("scanning");
+    setScanProgress(0);
+    setScanResult(null);
+    setUploadMessage("Demo scan in progress...");
+
+    let progress = 0;
+
+    const timer = setInterval(() => {
+      progress += 10;
+      setScanProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(timer);
+        setScanStatus("completed");
+        setScanResult({
+          message: "Demo scan completed successfully.",
+        });
+        setUploadMessage(
+          "Demo scan complete. No real security analysis was performed.",
+        );
+      }
+    }, 200);
+  };
+
   const filteredEvents = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return events;
@@ -746,16 +779,61 @@ function App() {
                       <button
                         type="button"
                         className="button button-primary upload-submit-button"
-                        onClick={() =>
-                          setUploadMessage(
-                            "Scanning is not available yet. Backend integration is pending.",
-                          )
-                        }
+                        onClick={handleScan}
+                        disabled={!selectedFile || scanStatus === "scanning"}
                       >
                         <UploadCloud size={17} />
-                        Upload &amp; Scan
+                        {scanStatus === "scanning"
+                          ? `Scanning... ${scanProgress}%`
+                          : scanStatus === "completed"
+                            ? "Scan Again"
+                            : "Upload & Scan"}
                       </button>
                     </div>
+
+                    {scanStatus === "scanning" && (
+                      <div className="scan-progress-card" role="status">
+                        <div className="scan-progress-heading">
+                          <strong>Scanning file</strong>
+                          <span>{scanProgress}%</span>
+                        </div>
+
+                        <div
+                          className="scan-progress-track"
+                          role="progressbar"
+                          aria-valuenow={scanProgress}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <div
+                            className="scan-progress-fill"
+                            style={{ width: `${scanProgress}%` }}
+                          />
+                        </div>
+
+                        <p>Simulating the scanning workflow...</p>
+                      </div>
+                    )}
+
+                    {scanStatus === "completed" && scanResult && (
+                      <div className="scan-result-card" role="status">
+                        <div className="scan-result-heading">
+                          <span className="scan-result-icon">✔</span>
+                          <div>
+                            <strong>Demo scan completed</strong>
+                            <p>{scanResult.message}</p>
+                          </div>
+                        </div>
+
+                        <div className="scan-result-notice">
+                          <span>Demo mode</span>
+                          <p>
+                            This is a simulated result, not a real malware
+                            verdict.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
