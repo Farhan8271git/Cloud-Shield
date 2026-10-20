@@ -24,14 +24,22 @@ const detectSuspiciousActivity = async (userId, windowSeconds = 30) => {
 
     const signals = [];
 
+    // Count distinct files that were actually modified.
+    const modifiedFileIds = new Set(
+        analysis.activities
+            .filter((activity) => activity.activityType === "modified")
+            .map((activity) => String(activity.fileId))
+    );
+
     // Rule 1: multiple unique files modified
-    if (analysis.uniqueFiles >= 3) {
+    if (modifiedFileIds.size >= 3) {
         signals.push({
             type: "mass_file_modification",
             severity: "medium",
-            description: "Multiple unique files were modified within a short period.",
+            description:
+                "Multiple unique files were modified within a short period.",
             evidence: {
-                uniqueFiles: analysis.uniqueFiles,
+                uniqueFilesModified: modifiedFileIds.size,
                 windowSeconds: analysis.windowSeconds,
             },
         });

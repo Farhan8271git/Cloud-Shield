@@ -56,20 +56,52 @@ describe("detectionEngine.detectSuspiciousActivity", () => {
         assert.equal(analysisMock.mock.callCount(), 0);
     });
 
-    it("should detect mass file modification", async () => {
+    it("should detect modification of three distinct files", async () => {
         analysisMock.mock.mockImplementation(async () =>
             createAnalysis({
                 uniqueFiles: 3,
+                modifications: 4,
+                activities: [
+                    { fileId: "file-1", activityType: "modified" },
+                    { fileId: "file-1", activityType: "modified" },
+                    { fileId: "file-2", activityType: "modified" },
+                    { fileId: "file-3", activityType: "modified" },
+                ],
             })
         );
 
         const result =
             await detectionEngine.detectSuspiciousActivity("user-1");
 
-        assert.ok(
+        const signal = result.signals.find(
+            (item) => item.type === "mass_file_modification"
+        );
+
+        assert.ok(signal);
+        assert.equal(signal.evidence.uniqueFilesModified, 3);
+    });;
+
+    it("should not flag file creation as mass file modification", async () => {
+        analysisMock.mock.mockImplementation(async () =>
+            createAnalysis({
+                uniqueFiles: 3,
+                totalActivities: 3,
+                activities: [
+                    { fileId: "file-1", activityType: "created" },
+                    { fileId: "file-2", activityType: "created" },
+                    { fileId: "file-3", activityType: "created" },
+                ],
+            })
+        );
+
+        const result =
+            await detectionEngine.detectSuspiciousActivity("user-1");
+
+        assert.equal(
             result.signals.some(
                 (signal) => signal.type === "mass_file_modification"
-            )
+            ),
+            false
         );
     });
 
