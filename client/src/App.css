@@ -59,8 +59,37 @@ button {
   font-size: 9px;
   letter-spacing: 1px;
 }
+/* Hide sidebar close button on desktop */
 .sidebar-close {
   display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 5px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #a8b5cc;
+  cursor: pointer;
+}
+
+.sidebar-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Show close button only on mobile */
+@media (max-width: 768px) {
+  .sidebar-close {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-close {
+    display: flex;
+  }
 }
 .workspace {
   display: flex;
@@ -1103,12 +1132,6 @@ td code {
   .sidebar.sidebar-open {
     transform: translateX(0);
   }
-  .sidebar-close {
-    display: grid;
-    place-items: center;
-    margin-left: auto;
-    padding: 7px;
-  }
   .mobile-overlay {
     position: fixed;
     inset: 0;
@@ -1413,19 +1436,6 @@ td code {
   line-height: 1.4;
   white-space: nowrap;
 }
-.sidebar-close {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  background: transparent;
-  color: #a8b5cc;
-  cursor: pointer;
-}
-.sidebar-close:hover {
-  color: #fff;
-}
 @media (max-width: 760px) {
   .brand {
     padding: 12px 8px;
@@ -1457,24 +1467,6 @@ td code {
 .brand-caption {
   font-size: 8px;
   letter-spacing: 1px;
-}
-.sidebar-close {
-  margin-left: auto;
-  padding: 5px;
-  border-radius: 6px;
-}
-.sidebar-close:hover {
-  background: rgba(255, 255, 255, 0.07);
-}
-/* Hide sidebar close button on desktop */
-.sidebar-close {
-  display: none;
-}
-/* Show close button only on mobile */
-@media (max-width: 760px) {
-  .sidebar-close {
-    display: flex;
-  }
 }
 /* Workspace dropdown */
 .workspace-wrap {
