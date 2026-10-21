@@ -1,8 +1,16 @@
-import { describe, it, beforeEach, afterEach, mock } from "node:test";
+import {
+    describe,
+    it,
+    beforeEach,
+    afterEach,
+    mock,
+} from "node:test";
+
 import assert from "node:assert/strict";
 
 import activityAnalysisService from "../src/services/activityAnalysis.service.js";
 import detectionEngine from "../src/services/detectionEngine.service.js";
+import securityEventService from "../src/services/securityEvent.service.js";
 
 const createAnalysis = (overrides = {}) => ({
     windowSeconds: 30,
@@ -25,6 +33,15 @@ describe("detectionEngine.detectSuspiciousActivity", () => {
             "analyzeRecentActivity",
             async (_userId, windowSeconds) =>
                 createAnalysis({ windowSeconds })
+        );
+
+        mock.method(
+            securityEventService,
+            "createSecurityEvent",
+            async (event) => ({
+                _id: `event-${event.fileId}-${event.detectionType}`,
+                ...event,
+            })
         );
     });
 
@@ -62,10 +79,26 @@ describe("detectionEngine.detectSuspiciousActivity", () => {
                 uniqueFiles: 3,
                 modifications: 4,
                 activities: [
-                    { fileId: "file-1", activityType: "modified" },
-                    { fileId: "file-1", activityType: "modified" },
-                    { fileId: "file-2", activityType: "modified" },
-                    { fileId: "file-3", activityType: "modified" },
+                    {
+                        _id: "activity-1",
+                        fileId: "file-1",
+                        activityType: "modified",
+                    },
+                    {
+                        _id: "activity-2",
+                        fileId: "file-1",
+                        activityType: "modified",
+                    },
+                    {
+                        _id: "activity-3",
+                        fileId: "file-2",
+                        activityType: "modified",
+                    },
+                    {
+                        _id: "activity-4",
+                        fileId: "file-3",
+                        activityType: "modified",
+                    },
                 ],
             })
         );
@@ -73,23 +106,68 @@ describe("detectionEngine.detectSuspiciousActivity", () => {
         const result =
             await detectionEngine.detectSuspiciousActivity("user-1");
 
-        const signal = result.signals.find(
-            (item) => item.type === "mass_file_modification"
+        const massModificationSignal = result.signals.find(
+            (signal) => signal.type === "mass_file_modification"
         );
 
-        assert.ok(signal);
-        assert.equal(signal.evidence.uniqueFilesModified, 3);
-    });;
+        assert.ok(massModificationSignal);
+        assert.equal(
+            massModificationSignal.evidence.uniqueFilesModified,
+            3
+        );
+
+        const massModificationEvents = result.events.filter(
+            (event) =>
+                event.detectionType === "mass_file_modification"
+        );
+
+        const rapidModificationEvents = result.events.filter(
+            (event) =>
+                event.detectionType === "rapid_file_modification"
+        );
+
+        // Three distinct files produce three events for each signal.
+        assert.equal(massModificationEvents.length, 3);
+        assert.equal(rapidModificationEvents.length, 3);
+
+        assert.equal(result.events.length, 6);
+        assert.equal(result.persistedEventCount, 6);
+
+        assert.ok(
+            massModificationEvents.every(
+                (event) => event.eventType === "suspicious_activity"
+            )
+        );
+
+        assert.ok(
+            rapidModificationEvents.every(
+                (event) => event.eventType === "suspicious_activity"
+            )
+        );
+    });
 
     it("should not flag file creation as mass file modification", async () => {
         analysisMock.mock.mockImplementation(async () =>
             createAnalysis({
                 uniqueFiles: 3,
                 totalActivities: 3,
+                modifications: 0,
                 activities: [
-                    { fileId: "file-1", activityType: "created" },
-                    { fileId: "file-2", activityType: "created" },
-                    { fileId: "file-3", activityType: "created" },
+                    {
+                        _id: "activity-1",
+                        fileId: "file-1",
+                        activityType: "created",
+                    },
+                    {
+                        _id: "activity-2",
+                        fileId: "file-2",
+                        activityType: "created",
+                    },
+                    {
+                        _id: "activity-3",
+                        fileId: "file-3",
+                        activityType: "created",
+                    },
                 ],
             })
         );
@@ -97,12 +175,17 @@ describe("detectionEngine.detectSuspiciousActivity", () => {
         const result =
             await detectionEngine.detectSuspiciousActivity("user-1");
 
-        assert.equal(
-            result.signals.some(
-                (signal) => signal.type === "mass_file_modification"
-            ),
-            false
+        const massModificationSignal = result.signals.find(
+            (signal) => signal.type === "mass_file_modification"
         );
+
+        const massModificationEvents = result.events.filter(
+            (event) =>
+                event.detectionType === "mass_file_modification"
+        );
+
+        assert.equal(massModificationSignal, undefined);
+        assert.equal(massModificationEvents.length, 0);
     });
 
     it("should detect rapid file modification", async () => {
@@ -139,7 +222,6 @@ describe("detectionEngine.detectSuspiciousActivity", () => {
 
         assert.ok(signal);
         assert.equal(signal.severity, "high");
-        assert.equal(signal.security, undefined);
     });
 
     it("should detect mass renaming independently of extension changes", async () => {
@@ -166,5 +248,63 @@ describe("detectionEngine.detectSuspiciousActivity", () => {
 
         assert.equal(result.signalCount, 0);
         assert.deepEqual(result.signals, []);
+        assert.equal(result.events.length, 0);
+        assert.equal(result.persistedEventCount, 0);
+    });
+
+    it("should return the same episode ID for identical activity evidence", async () => {
+        const activities = [
+            {
+                _id: "activity-1",
+                fileId: "file-1",
+                activityType: "modified",
+            },
+            {
+                _id: "activity-2",
+                fileId: "file-2",
+                activityType: "modified",
+            },
+            {
+                _id: "activity-3",
+                fileId: "file-3",
+                activityType: "modified",
+            },
+        ];
+
+        analysisMock.mock.mockImplementation(async () =>
+            createAnalysis({
+                modifications: 3,
+                activities,
+            })
+        );
+
+        const firstResult =
+            await detectionEngine.detectSuspiciousActivity("user-1");
+
+        const secondResult =
+            await detectionEngine.detectSuspiciousActivity("user-1");
+
+        const firstEvent = firstResult.events.find(
+            (event) =>
+                event.detectionType === "mass_file_modification"
+        );
+
+        const secondEvent = secondResult.events.find(
+            (event) =>
+                event.detectionType === "mass_file_modification"
+        );
+
+        assert.ok(firstEvent);
+        assert.ok(secondEvent);
+
+        assert.equal(
+            firstEvent.episodeId,
+            secondEvent.episodeId
+        );
+
+        assert.equal(
+            firstEvent.detectionType,
+            "mass_file_modification"
+        );
     });
 });

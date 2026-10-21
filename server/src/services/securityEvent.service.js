@@ -7,6 +7,11 @@ const EVENT_TYPES = new Set([
     "ransomware_detected",
 ]);
 
+const DETECTION_EVENT_TYPES = new Set([
+    "suspicious_activity",
+    "ransomware_detected",
+]);
+
 const isDuplicateKeyError = (error) => error?.code === 11000;
 
 const createSecurityEvent = async ({
@@ -15,6 +20,8 @@ const createSecurityEvent = async ({
     eventType,
     previousHash = null,
     currentHash = null,
+    detectionType = null,
+    episodeId = null,
     riskScore = 0,
     reason,
     metadata = {},
@@ -52,16 +59,48 @@ const createSecurityEvent = async ({
         );
     }
 
+    if (
+        eventType === "integrity_violation" &&
+        (
+            typeof previousHash !== "string" ||
+            !previousHash.trim() ||
+            typeof currentHash !== "string" ||
+            !currentHash.trim()
+        )
+    ) {
+        throw new AppError(
+            "Previous and current hashes are required for integrity violations.",
+            400
+        );
+    }
+
+    if (DETECTION_EVENT_TYPES.has(eventType)) {
+        if (
+            typeof detectionType !== "string" ||
+            !detectionType.trim() ||
+            typeof episodeId !== "string" ||
+            !episodeId.trim()
+        ) {
+            throw new AppError(
+                "Detection type and episode ID are required for detection events.",
+                400
+            );
+        }
+    }
+
     const eventIdentity = {
         userId,
         fileId,
         eventType,
         previousHash,
         currentHash,
+        detectionType,
+        episodeId,
     };
 
-    const existingEvent =
-        await SecurityEvent.findOne(eventIdentity);
+    const existingEvent = await SecurityEvent.findOne(
+        eventIdentity
+    );
 
     if (existingEvent) {
         return existingEvent;
@@ -75,19 +114,20 @@ const createSecurityEvent = async ({
             metadata,
         });
     } catch (error) {
-        // The unique index may reject a concurrent duplicate insert.
+        // Let MongoDB's unique index arbitrate concurrent inserts.
         if (!isDuplicateKeyError(error)) {
             throw error;
         }
 
-        const duplicateEvent =
-            await SecurityEvent.findOne(eventIdentity);
+        const duplicateEvent = await SecurityEvent.findOne(
+            eventIdentity
+        );
 
         if (duplicateEvent) {
             return duplicateEvent;
         }
 
-        // Do not hide a duplicate-key error from another index.
+        // Don't hide a collision from an unrelated index.
         throw error;
     }
 };

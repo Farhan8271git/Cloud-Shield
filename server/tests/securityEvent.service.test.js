@@ -277,4 +277,69 @@ describe("securityEvent.createSecurityEvent", () => {
             (error) => error === databaseError
         );
     });
+
+    it("should reject detection events without an episode identity", async () => {
+        const findMock = mock.method(
+            SecurityEvent,
+            "findOne",
+            async () => {
+                throw new Error("Database must not be queried");
+            }
+        );
+
+        await assert.rejects(
+            securityEventService.createSecurityEvent({
+                userId: "user-1",
+                fileId: "file-1",
+                eventType: "suspicious_activity",
+                detectionType: "mass_file_modification",
+                riskScore: 40,
+                reason: "Multiple files were modified rapidly.",
+            }),
+            {
+                message:
+                    "Detection type and episode ID are required for detection events.",
+                statusCode: 400,
+            }
+        );
+
+        assert.equal(findMock.mock.callCount(), 0);
+    });
+
+    it("should define separate partial unique indexes for transitions and episodes", () => {
+        const indexes = SecurityEvent.schema.indexes();
+
+        const transitionIndex = indexes.find(
+            ([, options]) =>
+                options.name ===
+                "unique_security_event_transition_integrity"
+        );
+
+        const episodeIndex = indexes.find(
+            ([, options]) =>
+                options.name === "unique_security_event_episode"
+        );
+
+        assert.ok(transitionIndex);
+        assert.ok(transitionIndex[1].unique);
+
+        assert.deepEqual(
+            transitionIndex[1].partialFilterExpression,
+            {
+                eventType: "integrity_violation",
+            }
+        );
+
+        assert.ok(episodeIndex);
+        assert.ok(episodeIndex[1].unique);
+
+        assert.deepEqual(
+            episodeIndex[1].partialFilterExpression,
+            {
+                episodeId: {
+                    $type: "string",
+                },
+            }
+        );
+    });
 });
