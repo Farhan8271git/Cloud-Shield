@@ -24,7 +24,7 @@ const getRecentIntegrityActivity = async (userId, windowSeconds = 30 ) => {
         },
     })
 
-    .select("filedId previousHash currentHash createdAt riskScore").sort({
+    .select("fileId previousHash currentHash createdAt riskScore").sort({
         createdAt: -1,
     });
 
