@@ -276,31 +276,49 @@ function App() {
     handleFileSelect(event.dataTransfer.files?.[0]);
   };
 
-  const handleScan = () => {
+  const handleScan = async () => {
     if (!selectedFile || scanStatus === "scanning") return;
 
     setScanStatus("scanning");
     setScanProgress(0);
     setScanResult(null);
-    setUploadMessage("Demo scan in progress...");
+    setUploadMessage("Uploading file securely to Cloud-Shield...");
 
-    let progress = 0;
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
-    const timer = setInterval(() => {
-      progress += 10;
-      setScanProgress(progress);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/files`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        },
+      );
 
-      if (progress >= 100) {
-        clearInterval(timer);
-        setScanStatus("completed");
-        setScanResult({
-          message: "Demo scan completed successfully.",
-        });
-        setUploadMessage(
-          "Demo scan complete. No real security analysis was performed.",
-        );
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "File upload failed.");
       }
-    }, 200);
+
+      setScanProgress(100);
+      setScanStatus("completed");
+      setScanResult({
+        message: result.message || "File uploaded successfully.",
+        file: result.data,
+      });
+
+      setUploadMessage(
+        `${selectedFile.name} uploaded successfully. Backend file record created.`,
+      );
+    } catch (error) {
+      setScanStatus("idle");
+      setScanProgress(0);
+      setScanResult(null);
+      setUploadMessage(error.message || "Upload failed. Please try again.");
+    }
   };
 
   const filteredEvents = useMemo(() => {
@@ -820,16 +838,16 @@ function App() {
                         <div className="scan-result-heading">
                           <span className="scan-result-icon">✔</span>
                           <div>
-                            <strong>Demo scan completed</strong>
+                            <strong>File uploaded successfully</strong>
                             <p>{scanResult.message}</p>
                           </div>
                         </div>
 
                         <div className="scan-result-notice">
-                          <span>Demo mode</span>
+                          <span>Upload verified</span>
                           <p>
-                            This is a simulated result, not a real malware
-                            verdict.
+                            Cloud-Shield accepted the file and returned its
+                            metadata. This does not yet confirm a malware scan.
                           </p>
                         </div>
                       </div>
@@ -863,8 +881,8 @@ function App() {
                 </div>
 
                 <p className="upload-disclaimer">
-                  Preview only — file upload and ransomware scanning are not
-                  connected yet.
+                  Files are uploaded to the backend. Malware scanning status is
+                  not confirmed by upload success alone.
                 </p>
               </section>
 
