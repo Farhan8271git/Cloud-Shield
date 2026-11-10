@@ -20,20 +20,15 @@ concurrency:
 
 jobs:
   build-and-test:
-
     name: Backend Tests and Frontend Build
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 20
 
     services:
       mongodb:
         image: mongo:7.0
-
         ports:
           - 27017:27017
-
         options: >-
           --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
           --health-interval 10s
@@ -42,13 +37,10 @@ jobs:
 
     env:
       NODE_ENV: test
-
       MONGODB_URI: mongodb://127.0.0.1:27017/cloud_shield_test
-
       MONGODB_TEST_URI: mongodb://127.0.0.1:27017/cloud_shield_test
 
     steps:
-
       # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -68,12 +60,29 @@ jobs:
         working-directory: server
         run: npm ci
 
-      # Step 4: Create isolated test database collection
+      # Step 4: Initialize MongoDB test collection
       - name: Initialize MongoDB test collection
+        working-directory: server
         run: |
-          mongosh "$MONGODB_URI" --quiet --eval 'db.createCollection("securityevents")'
+          node --input-type=module -e "
+            import mongoose from 'mongoose';
 
-      # Step 5: Create and verify security indexes
+            await mongoose.connect(process.env.MONGODB_URI);
+
+            const collections = await mongoose.connection.db
+              .listCollections({ name: 'securityevents' })
+              .toArray();
+
+            if (collections.length === 0) {
+              await mongoose.connection.db.createCollection('securityevents');
+            }
+
+            console.log('MongoDB test collection initialized.');
+
+            await mongoose.disconnect();
+          "
+
+      # Step 5: Initialize security event indexes
       - name: Initialize security event indexes
         working-directory: server
         run: node scripts/migrate-security-event-indexes.js
@@ -88,7 +97,7 @@ jobs:
         working-directory: client
         run: npm ci
 
-      # Step 8: Run ESLint
+      # Step 8: Run frontend lint
       - name: Run frontend lint
         working-directory: client
         run: npm run lint
