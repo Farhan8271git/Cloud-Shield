@@ -39,6 +39,7 @@ jobs:
       NODE_ENV: test
       MONGODB_URI: mongodb://127.0.0.1:27017/cloud_shield_test
       MONGODB_TEST_URI: mongodb://127.0.0.1:27017/cloud_shield_test
+      JWT_SECRET: cloud-shield-ci-only-test-secret-change-before-production-2026
 
     steps:
       # Step 1: Checkout repository
